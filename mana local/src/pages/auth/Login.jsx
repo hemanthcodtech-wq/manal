@@ -25,7 +25,7 @@ export default function Login() {
     try {
       // For now we assume worker login. If you want a unified login endpoint you would need to adjust the backend.
       // But let's try worker first, if it fails try admin.
-      let res = await fetch('http://localhost:3000/api/auth/worker/login', {
+      let res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/worker/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -34,7 +34,7 @@ export default function Login() {
       
       // If it fails with invalid credentials, it might be an admin
       if (!res.ok && resultData.error === 'Invalid credentials') {
-        res = await fetch('http://localhost:3000/api/auth/admin/login', {
+        res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/admin/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(form)
@@ -55,7 +55,7 @@ export default function Login() {
       
       let fullProfile = { id: decodedToken.id, email: decodedToken.email, role: decodedToken.role };
       if (decodedToken.role === 'worker') {
-        const profRes = await fetch(`http://localhost:3000/api/worker/${decodedToken.id}/profile`);
+        const profRes = await fetch(`${import.meta.env.VITE_API_URL}/api/worker/${decodedToken.id}/profile`);
         const profData = await profRes.json();
         if (profData.success) fullProfile = { ...fullProfile, ...profData.profile };
       }

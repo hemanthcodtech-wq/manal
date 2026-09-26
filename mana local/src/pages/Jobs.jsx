@@ -12,7 +12,7 @@ export default function Jobs() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/admin/jobs');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/jobs`);
         const data = await res.json();
         if (data.success) {
           // Map backend jobs to frontend format

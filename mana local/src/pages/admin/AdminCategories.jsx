@@ -21,8 +21,8 @@ export default function AdminCategories() {
     setLoading(true);
     try {
       const [catRes, subRes] = await Promise.all([
-        fetch('http://localhost:3000/api/admin/categories'),
-        fetch('http://localhost:3000/api/admin/subcategories')
+        fetch(`${import.meta.env.VITE_API_URL}/api/admin/categories`),
+        fetch(`${import.meta.env.VITE_API_URL}/api/admin/subcategories`)
       ]);
       const catData = await catRes.json();
       const subData = await subRes.json();
@@ -66,7 +66,7 @@ export default function AdminCategories() {
   const handleSaveCat = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    const url = editingCatId ? `http://localhost:3000/api/admin/categories/${editingCatId}` : 'http://localhost:3000/api/admin/categories';
+    const url = editingCatId ? `${import.meta.env.VITE_API_URL}/api/admin/categories/${editingCatId}` : `${import.meta.env.VITE_API_URL}/api/admin/categories`;
     const method = editingCatId ? 'PUT' : 'POST';
     try {
       await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: catName }) });
@@ -80,7 +80,7 @@ export default function AdminCategories() {
     e.preventDefault();
     if (!subCatId) return alert('Select a category');
     setIsSubmitting(true);
-    const url = editingSubId ? `http://localhost:3000/api/admin/subcategories/${editingSubId}` : 'http://localhost:3000/api/admin/subcategories';
+    const url = editingSubId ? `${import.meta.env.VITE_API_URL}/api/admin/subcategories/${editingSubId}` : `${import.meta.env.VITE_API_URL}/api/admin/subcategories`;
     const method = editingSubId ? 'PUT' : 'POST';
     try {
       await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: subName, category_id: subCatId }) });
@@ -93,7 +93,7 @@ export default function AdminCategories() {
   const handleDeleteCat = async (id) => {
     if(!window.confirm('Delete this category? All its subcategories will be deleted!')) return;
     try {
-      await fetch(`http://localhost:3000/api/admin/categories/${id}`, { method: 'DELETE' });
+      await fetch(`${import.meta.env.VITE_API_URL}/api/admin/categories/${id}`, { method: 'DELETE' });
       fetchData();
     } catch(err) {}
   };
@@ -101,7 +101,7 @@ export default function AdminCategories() {
   const handleDeleteSub = async (id) => {
     if(!window.confirm('Delete this subcategory?')) return;
     try {
-      await fetch(`http://localhost:3000/api/admin/subcategories/${id}`, { method: 'DELETE' });
+      await fetch(`${import.meta.env.VITE_API_URL}/api/admin/subcategories/${id}`, { method: 'DELETE' });
       fetchData();
     } catch(err) {}
   };

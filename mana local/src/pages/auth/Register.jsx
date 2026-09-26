@@ -25,9 +25,9 @@ export default function Register() {
   const [plans, setPlans] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/admin/categories').then(r => r.json()).then(d => setCategories(d.categories || []));
-    fetch('http://localhost:3000/api/admin/subcategories').then(r => r.json()).then(d => setSubcategories(d.subcategories || []));
-    fetch('http://localhost:3000/api/admin/subscriptions').then(r => r.json()).then(d => setPlans(d.subscriptions || []));
+    fetch(`${import.meta.env.VITE_API_URL}/api/admin/categories`).then(r => r.json()).then(d => setCategories(d.categories || []));
+    fetch(`${import.meta.env.VITE_API_URL}/api/admin/subcategories`).then(r => r.json()).then(d => setSubcategories(d.subcategories || []));
+    fetch(`${import.meta.env.VITE_API_URL}/api/admin/subscriptions`).then(r => r.json()).then(d => setPlans(d.subscriptions || []));
   }, []);
 
   const { register, users } = useAuthStore();
@@ -88,7 +88,7 @@ export default function Register() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:3000/api/auth/send-otp', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email })
@@ -114,7 +114,7 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/auth/send-otp', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email })
@@ -153,7 +153,7 @@ export default function Register() {
       if (otp.length !== 6) { setError('Please enter a 6-digit OTP'); return; }
       setLoading(true);
       try {
-        const verifyRes = await fetch('http://localhost:3000/api/auth/verify-otp', {
+        const verifyRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/verify-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: form.email, otp })
@@ -190,7 +190,7 @@ export default function Register() {
       }
       
       try {
-        const orderRes = await fetch('http://localhost:3000/api/payment/create-order', {
+        const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/create-order`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ amount, plan_id: workerForm.plan_id })
@@ -211,7 +211,7 @@ export default function Register() {
           description: 'Professional Subscription Plan',
           order_id: orderData.order.id,
           handler: async function (response) {
-            const verifyRes = await fetch('http://localhost:3000/api/payment/verify', {
+            const verifyRes = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/verify`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(response)
@@ -281,7 +281,7 @@ export default function Register() {
     };
     
     try {
-      const endpoint = role === 'admin' ? 'http://localhost:3000/api/auth/admin/signup' : 'http://localhost:3000/api/auth/worker/signup';
+      const endpoint = role === 'admin' ? `${import.meta.env.VITE_API_URL}/api/auth/admin/signup` : `${import.meta.env.VITE_API_URL}/api/auth/worker/signup`;
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

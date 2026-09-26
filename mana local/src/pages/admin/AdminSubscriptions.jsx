@@ -16,10 +16,10 @@ export default function AdminSubscriptions() {
     setLoading(true);
     try {
       const [resSub, resW, resC, resS] = await Promise.all([
-        fetch('http://localhost:3000/api/admin/subscriptions'),
-        fetch('http://localhost:3000/api/admin/workers'),
-        fetch('http://localhost:3000/api/admin/categories'),
-        fetch('http://localhost:3000/api/admin/subcategories')
+        fetch(`${import.meta.env.VITE_API_URL}/api/admin/subscriptions`),
+        fetch(`${import.meta.env.VITE_API_URL}/api/admin/workers`),
+        fetch(`${import.meta.env.VITE_API_URL}/api/admin/categories`),
+        fetch(`${import.meta.env.VITE_API_URL}/api/admin/subcategories`)
       ]);
       const dataSub = await resSub.json();
       const dataW = await resW.json();
@@ -73,7 +73,7 @@ export default function AdminSubscriptions() {
         subcategory_id: formData.subcategory_id || null
       };
       
-      const url = editingId ? `http://localhost:3000/api/admin/subscriptions/${editingId}` : 'http://localhost:3000/api/admin/subscriptions';
+      const url = editingId ? `${import.meta.env.VITE_API_URL}/api/admin/subscriptions/${editingId}` : `${import.meta.env.VITE_API_URL}/api/admin/subscriptions`;
       const method = editingId ? 'PUT' : 'POST';
       
       const res = await fetch(url, {
@@ -97,7 +97,7 @@ export default function AdminSubscriptions() {
   const handleDeleteSub = async (id) => {
     if (!window.confirm('Are you sure you want to delete this plan?')) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/subscriptions/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/subscriptions/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         fetchData();

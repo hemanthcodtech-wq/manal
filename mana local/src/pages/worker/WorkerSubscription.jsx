@@ -8,7 +8,7 @@ export default function WorkerSubscription() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/admin/subscriptions')
+    fetch(`${import.meta.env.VITE_API_URL}/api/admin/subscriptions`)
       .then(res => res.json())
       .then(data => {
         if (data.success) setPlans(data.subscriptions);

@@ -10,7 +10,7 @@ export default function AdminCustomers() {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/admin/customers');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/customers`);
         const data = await res.json();
         if (data.success) {
           setCustomers(data.customers);

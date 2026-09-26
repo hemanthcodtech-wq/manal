@@ -17,7 +17,7 @@ export default function AdminRealEstate() {
   const fetchProperties = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/admin/real-estate');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/real-estate`);
       const data = await res.json();
       if (data.success) {
         setProperties(data.properties);
@@ -56,7 +56,7 @@ export default function AdminRealEstate() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this property?')) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/real-estate/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/real-estate/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) fetchProperties();
     } catch (err) {
@@ -68,7 +68,7 @@ export default function AdminRealEstate() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const url = editingId ? `http://localhost:3000/api/admin/real-estate/${editingId}` : 'http://localhost:3000/api/admin/real-estate';
+      const url = editingId ? `${import.meta.env.VITE_API_URL}/api/admin/real-estate/${editingId}` : `${import.meta.env.VITE_API_URL}/api/admin/real-estate`;
       const method = editingId ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
@@ -99,7 +99,7 @@ export default function AdminRealEstate() {
     }
     
     try {
-      const res = await fetch('http://localhost:3000/api/admin/upload-media', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/upload-media`, {
         method: 'POST',
         body: data
       });

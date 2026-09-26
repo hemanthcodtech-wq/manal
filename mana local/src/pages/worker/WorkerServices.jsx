@@ -30,17 +30,17 @@ export default function WorkerServices() {
     const fetchData = async () => {
       if (user?.id) {
         try {
-          const profRes = await fetch(`http://localhost:3000/api/worker/${user.id}/profile`);
+          const profRes = await fetch(`${import.meta.env.VITE_API_URL}/api/worker/${user.id}/profile`);
           const profData = await profRes.json();
           if (profData.success && profData.profile) {
             setUser({ ...user, ...profData.profile });
           }
           
-          const catRes = await fetch('http://localhost:3000/api/admin/categories');
+          const catRes = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/categories`);
           const catData = await catRes.json();
           setCategories(catData.categories || []);
           
-          const subRes = await fetch('http://localhost:3000/api/admin/subcategories');
+          const subRes = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/subcategories`);
           const subData = await subRes.json();
           setSubcategories(subData.subcategories || []);
         } catch (err) {
@@ -62,7 +62,7 @@ export default function WorkerServices() {
     e.preventDefault();
     setLoadingPrimary(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/worker/${user.id}/rates`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/worker/${user.id}/rates`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -96,14 +96,14 @@ export default function WorkerServices() {
     
     setLoadingExtra(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/worker/${user.id}/services`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/worker/${user.id}/services`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(extraForm)
       });
       const data = await res.json();
       if (data.success) {
-        const profRes = await fetch(`http://localhost:3000/api/worker/${user.id}/profile`);
+        const profRes = await fetch(`${import.meta.env.VITE_API_URL}/api/worker/${user.id}/profile`);
         const profData = await profRes.json();
         if (profData.success) setUser({ ...user, ...profData.profile });
         setIsAddingExtra(false);
@@ -123,11 +123,11 @@ export default function WorkerServices() {
   const handleDeleteService = async (serviceId) => {
     if (!window.confirm('Are you sure you want to delete this service?')) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/worker/${user.id}/services/${serviceId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/worker/${user.id}/services/${serviceId}`, {
         method: 'DELETE'
       });
       if (res.ok) {
-        const profRes = await fetch(`http://localhost:3000/api/worker/${user.id}/profile`);
+        const profRes = await fetch(`${import.meta.env.VITE_API_URL}/api/worker/${user.id}/profile`);
         const profData = await profRes.json();
         if (profData.success) setUser({ ...user, ...profData.profile });
         toast.success('Service deleted successfully');

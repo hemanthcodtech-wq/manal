@@ -17,10 +17,10 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const statsRes = await fetch('http://localhost:3000/api/admin/dashboard-stats');
+        const statsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/dashboard-stats`);
         const statsData = await statsRes.json();
         
-        const workersRes = await fetch('http://localhost:3000/api/admin/workers');
+        const workersRes = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/workers`);
         const workersData = await workersRes.json();
 
         if (statsData.success) setStats(statsData.stats);

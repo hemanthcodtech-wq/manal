@@ -21,7 +21,7 @@ export default function Workers() {
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/admin/workers');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/workers`);
         const data = await res.json();
         if (data.success) {
           // In a real scenario, we might filter by subscribed workers:

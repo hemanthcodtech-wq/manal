@@ -18,7 +18,7 @@ export default function AdminJobs() {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/admin/jobs');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/jobs`);
       const data = await res.json();
       if (data.success) {
         setJobs(data.jobs);
@@ -56,7 +56,7 @@ export default function AdminJobs() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this job?')) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/jobs/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/jobs/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) fetchJobs();
     } catch (err) {
@@ -68,7 +68,7 @@ export default function AdminJobs() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const url = editingId ? `http://localhost:3000/api/admin/jobs/${editingId}` : 'http://localhost:3000/api/admin/jobs';
+      const url = editingId ? `${import.meta.env.VITE_API_URL}/api/admin/jobs/${editingId}` : `${import.meta.env.VITE_API_URL}/api/admin/jobs`;
       const method = editingId ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
@@ -303,7 +303,7 @@ export default function AdminJobs() {
                   const data = new FormData();
                   data.append('file', file);
                   try {
-                    const res = await fetch('http://localhost:3000/api/admin/upload-pdf', {
+                    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/upload-pdf`, {
                       method: 'POST',
                       body: data
                     });
