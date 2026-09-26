@@ -114,10 +114,12 @@ module.exports = (pool, redisClient) => {
       const result = await pool.query(`
         SELECT u.id, u.name, u.email, u.phone, u.status, u.rating, u.avatar, u.created_at, 
                u.aadhar_no, u.experience, u.location, u.category_id, u.subcategory_id, u.plan_id, u.payment_id, u.jobs_done,
-               c.name as category_name, sc.name as subcategory_name
+               c.name as category_name, sc.name as subcategory_name,
+               s.plan as plan_name, s.days as plan_days, s.amount as plan_amount
         FROM users u
         LEFT JOIN categories c ON u.category_id = c.id
         LEFT JOIN subcategories sc ON u.subcategory_id = sc.id
+        LEFT JOIN subscriptions s ON u.plan_id = s.id
         WHERE u.role = 'worker' 
         ORDER BY u.created_at DESC
       `);
@@ -325,16 +327,17 @@ module.exports = (pool, redisClient) => {
         [currentMonth, currentYear]
       );
       
-      // Subscriptions in month
+      // Subscriptions purchased in month by new workers
       const subsRes = await pool.query(
-        `SELECT plan FROM subscriptions WHERE EXTRACT(MONTH FROM created_at) = $1 AND EXTRACT(YEAR FROM created_at) = $2`,
+        `SELECT s.amount FROM users u 
+         JOIN subscriptions s ON u.plan_id = s.id 
+         WHERE u.role = 'worker' AND EXTRACT(MONTH FROM u.created_at) = $1 AND EXTRACT(YEAR FROM u.created_at) = $2`,
         [currentMonth, currentYear]
       );
 
       let revenue = 0;
-      const planPrices = { basic: 999, pro: 1999, premium: 4999 };
-      subsRes.rows.forEach(s => {
-        revenue += (planPrices[s.plan.toLowerCase()] || 0);
+      subsRes.rows.forEach(row => {
+        revenue += parseFloat(row.amount || 0);
       });
 
       res.json({

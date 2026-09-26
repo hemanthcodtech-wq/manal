@@ -78,6 +78,16 @@ export default function AdminWorkers() {
             const displayEmail = w.email || 'No Email';
             const displayPhone = w.phone || 'No phone number provided';
             
+            let planDisplay = w.plan_name || w.plan_id || 'Free';
+            let daysLeftDisplay = 'N/A';
+            if (w.plan_days && w.created_at) {
+              const created = new Date(w.created_at);
+              const expiry = new Date(created.getTime() + w.plan_days * 24 * 60 * 60 * 1000);
+              const diff = expiry - new Date();
+              const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+              daysLeftDisplay = daysLeft > 0 ? `${daysLeft} days` : 'Expired';
+            }
+            
             return (
               <div key={w.id} className="worker-card">
                 <div className="wc-top">
@@ -103,6 +113,17 @@ export default function AdminWorkers() {
                     <span>Rating</span>
                   </div>
                   <div><strong>{w.jobs_done || 0}</strong><span>Jobs Done</span></div>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: '#f8fafc', borderRadius: '8px', marginTop: '12px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Plan</span>
+                    <strong style={{ fontSize: '13px', color: '#0f172a' }}>{planDisplay}</strong>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <span style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Expires In</span>
+                    <strong style={{ fontSize: '13px', color: daysLeftDisplay === 'Expired' ? '#ef4444' : '#10b981' }}>{daysLeftDisplay}</strong>
+                  </div>
                 </div>
                 
                 <div style={{ display: 'flex', gap: '8px', marginTop: '15px' }}>
@@ -166,12 +187,29 @@ export default function AdminWorkers() {
                 <span style={{ fontWeight: 600, color: '#0f172a' }}>{selectedWorker.location || 'Not Provided'}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-                <span style={{ color: '#64748b' }}>Plan ID</span>
-                <span style={{ fontWeight: 600, color: '#0f172a' }}>{selectedWorker.plan_id || 'Free'}</span>
+                <span style={{ color: '#64748b' }}>Plan Name</span>
+                <span style={{ fontWeight: 600, color: '#0f172a' }}>{selectedWorker.plan_name || selectedWorker.plan_id || 'Free'}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
+                <span style={{ color: '#64748b' }}>Plan Amount</span>
+                <span style={{ fontWeight: 600, color: '#0f172a' }}>{selectedWorker.plan_amount ? `₹${selectedWorker.plan_amount}` : 'N/A'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
                 <span style={{ color: '#64748b' }}>Payment ID</span>
                 <span style={{ fontWeight: 600, color: '#0f172a' }}>{selectedWorker.payment_id || 'N/A'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px' }}>
+                <span style={{ color: '#64748b' }}>Expires In</span>
+                <span style={{ fontWeight: 600, color: '#0f172a' }}>
+                  {(() => {
+                    if (!selectedWorker.plan_days || !selectedWorker.created_at) return 'N/A';
+                    const created = new Date(selectedWorker.created_at);
+                    const expiry = new Date(created.getTime() + selectedWorker.plan_days * 24 * 60 * 60 * 1000);
+                    const diff = expiry - new Date();
+                    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                    return daysLeft > 0 ? `${daysLeft} days` : 'Expired';
+                  })()}
+                </span>
               </div>
             </div>
 
