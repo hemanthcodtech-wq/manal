@@ -1,0 +1,182 @@
+.splash-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #ffffff;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease-in-out;
+  opacity: 1;
+}
+
+.splash-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-center {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Central Logo */
+.splash-logo {
+  height: 90px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  z-index: 10;
+  background: #fff;
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.splash-logo.logo-in {
+  opacity: 1;
+  transform: scale(1);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.05);
+  animation: float-logo 3s ease-in-out infinite alternate;
+}
+
+@keyframes float-logo {
+  0% { transform: scale(1) translateY(0px); }
+  100% { transform: scale(1) translateY(-8px); }
+}
+
+/* Pulsing Circles */
+.splash-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid rgba(2, 132, 199, 0.2);
+  z-index: 1;
+  opacity: 0;
+}
+
+.splash-circle.active {
+  animation: pulse-ring 3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+.circle-1 { width: 100px; height: 100px; animation-delay: 0s !important; }
+.circle-2 { width: 100px; height: 100px; animation-delay: 1s !important; }
+.circle-3 { width: 100px; height: 100px; animation-delay: 2s !important; }
+
+@keyframes pulse-ring {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+}
+
+/* The Limbs (Buttons) */
+.splash-limb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.1);
+  opacity: 0;
+  background: #fff;
+  border: 1.5px solid #eee;
+  border-radius: 50px;
+  padding: 8px 16px 8px 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-decoration: none;
+  font-family: inherit;
+  z-index: 5;
+}
+
+.splash-limb:hover {
+  transform: translate(-50%, -50%) scale(1.05) !important;
+  border-color: var(--primary);
+  box-shadow: 0 12px 30px rgba(2, 132, 199, 0.15);
+}
+.splash-limb:hover .limb-icon {
+  background: var(--primary);
+  color: #fff;
+}
+
+.limb-icon {
+  width: 36px;
+  height: 36px;
+  background: #f0f9ff;
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.2s;
+}
+
+.splash-limb span {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+
+/* Positions when popped */
+/* Top Left */
+.splash-limb.limb-tl.pop {
+  transform: translate(calc(-50% - 110px), calc(-50% - 90px)) scale(1);
+  opacity: 1;
+  animation: float-limb 3s ease-in-out 0.2s infinite alternate;
+}
+
+/* Top Right */
+.splash-limb.limb-tr.pop {
+  transform: translate(calc(-50% + 110px), calc(-50% - 90px)) scale(1);
+  opacity: 1;
+  animation: float-limb 3s ease-in-out 0.5s infinite alternate;
+}
+
+/* Bottom Left */
+.splash-limb.limb-bl.pop {
+  transform: translate(calc(-50% - 110px), calc(-50% + 90px)) scale(1);
+  opacity: 1;
+  animation: float-limb 3s ease-in-out 0.8s infinite alternate;
+}
+
+/* Bottom Right */
+.splash-limb.limb-br.pop {
+  transform: translate(calc(-50% + 110px), calc(-50% + 90px)) scale(1);
+  opacity: 1;
+  animation: float-limb 3s ease-in-out 1.1s infinite alternate;
+}
+
+@keyframes float-limb {
+  0% { margin-top: 0px; }
+  100% { margin-top: -6px; }
+}
+
+/* Mobile Adjustments */
+@media (max-width: 600px) {
+  .splash-center {
+    width: 250px;
+    height: 250px;
+  }
+  .splash-logo {
+    height: 75px;
+  }
+  .splash-limb.limb-tl.pop { transform: translate(calc(-50% - 85px), calc(-50% - 80px)) scale(1); }
+  .splash-limb.limb-tr.pop { transform: translate(calc(-50% + 85px), calc(-50% - 80px)) scale(1); }
+  .splash-limb.limb-bl.pop { transform: translate(calc(-50% - 85px), calc(-50% + 80px)) scale(1); }
+  .splash-limb.limb-br.pop { transform: translate(calc(-50% + 85px), calc(-50% + 80px)) scale(1); }
+  
+  .splash-limb span { font-size: 12px; }
+  .limb-icon { width: 32px; height: 32px; font-size: 16px; }
+  .splash-limb { padding: 6px 12px 6px 6px; }
+}

@@ -1,0 +1,134 @@
+.roadmap-section {
+  padding: 80px 20px;
+  background: transparent;
+}
+
+.roadmap-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.roadmap-title {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 60px;
+  color: #1a1a1a;
+}
+
+.roadmap-container {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.roadmap-line {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #dcd6cb;
+  transform: translateX(-50%);
+}
+
+.roadmap-step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 60px;
+  width: 100%;
+}
+
+.roadmap-step:last-child {
+  margin-bottom: 0;
+}
+
+.rs-icon-wrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  background: #1a1a1a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  box-shadow: 0 0 0 8px #f8f8f8;
+  transition: transform 0.3s ease;
+}
+
+.roadmap-step:hover .rs-icon-wrap {
+  transform: translate(-50%, -50%) scale(1.1);
+  background: var(--primary);
+}
+
+.rs-icon {
+  color: #fff;
+  width: 20px;
+  height: 20px;
+}
+
+.rs-content {
+  width: 50%;
+  padding: 0;
+}
+
+.roadmap-step.left .rs-content {
+  text-align: right;
+  padding-right: 60px;
+}
+
+.roadmap-step.right {
+  justify-content: flex-end;
+}
+
+.roadmap-step.right .rs-content {
+  text-align: left;
+  padding-left: 60px;
+}
+
+.rs-content h4 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.rs-content p {
+  font-size: 15px;
+  color: #666;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .roadmap-line {
+    left: 24px;
+    transform: none;
+  }
+  
+  .rs-icon-wrap {
+    left: 24px;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 0 6px #f8f8f8;
+  }
+  
+  .roadmap-step:hover .rs-icon-wrap {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  
+  .roadmap-step {
+    justify-content: flex-end;
+    margin-bottom: 40px;
+  }
+  
+  .roadmap-step.left .rs-content,
+  .roadmap-step.right .rs-content {
+    width: calc(100% - 48px);
+    text-align: left;
+    padding: 0 0 0 24px;
+  }
+}
