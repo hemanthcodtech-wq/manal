@@ -3,6 +3,7 @@ import { realestate } from '../data/realestate';
 import { HiLocationMarker, HiPhone, HiSearch, HiOfficeBuilding, HiMap } from 'react-icons/hi';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import './RealEstate.css';
+import Footer from '../components/Footer';
 
 export default function RealEstate() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -93,7 +94,10 @@ export default function RealEstate() {
             </div>
           )}
         </div>
+        
       </div>
+      
     </div>
+    
   );
 }

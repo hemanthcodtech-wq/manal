@@ -44,11 +44,23 @@ export const useAuthStore = create(
 
       logout: () => set({ user: null }),
 
-      updateWorkerAvailability: (workerId, available) => {
+      updateWorkerAvailability: async (workerId, available) => {
+        // Optimistic UI update
         set(s => ({
           users: s.users.map(u => u.id === workerId ? { ...u, available } : u),
           user: s.user?.id === workerId ? { ...s.user, available } : s.user,
         }));
+        
+        // Backend update
+        try {
+          await fetch(`${import.meta.env.VITE_API_URL}/api/worker/${workerId}/availability`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ available })
+          });
+        } catch (err) {
+          console.error('Failed to sync availability with backend', err);
+        }
       },
 
       getWorkers: () => get().users.filter(u => u.role === 'worker'),

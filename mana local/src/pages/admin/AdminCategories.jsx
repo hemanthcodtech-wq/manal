@@ -8,11 +8,14 @@ export default function AdminCategories() {
 
   const [showCatModal, setShowCatModal] = useState(false);
   const [catName, setCatName] = useState('');
+  const [catImage, setCatImage] = useState(null);
   const [editingCatId, setEditingCatId] = useState(null);
 
   const [showSubModal, setShowSubModal] = useState(false);
   const [subName, setSubName] = useState('');
   const [subCatId, setSubCatId] = useState('');
+  const [subImage, setSubImage] = useState(null);
+  const [allowShowcase, setAllowShowcase] = useState(false);
   const [editingSubId, setEditingSubId] = useState(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,6 +50,7 @@ export default function AdminCategories() {
       setEditingCatId(null);
       setCatName('');
     }
+    setCatImage(null);
     setShowCatModal(true);
   };
 
@@ -55,11 +59,14 @@ export default function AdminCategories() {
       setEditingSubId(sub.id);
       setSubName(sub.name);
       setSubCatId(sub.category_id);
+      setAllowShowcase(sub.allow_showcase_images || false);
     } else {
       setEditingSubId(null);
       setSubName('');
       setSubCatId(categories.length > 0 ? categories[0].id : '');
+      setAllowShowcase(false);
     }
+    setSubImage(null);
     setShowSubModal(true);
   };
 
@@ -68,8 +75,13 @@ export default function AdminCategories() {
     setIsSubmitting(true);
     const url = editingCatId ? `${import.meta.env.VITE_API_URL}/api/admin/categories/${editingCatId}` : `${import.meta.env.VITE_API_URL}/api/admin/categories`;
     const method = editingCatId ? 'PUT' : 'POST';
+    
+    const formData = new FormData();
+    formData.append('name', catName);
+    if (catImage) formData.append('image', catImage);
+
     try {
-      await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: catName }) });
+      await fetch(url, { method, body: formData });
       setShowCatModal(false);
       fetchData();
     } catch(err) {}
@@ -82,8 +94,15 @@ export default function AdminCategories() {
     setIsSubmitting(true);
     const url = editingSubId ? `${import.meta.env.VITE_API_URL}/api/admin/subcategories/${editingSubId}` : `${import.meta.env.VITE_API_URL}/api/admin/subcategories`;
     const method = editingSubId ? 'PUT' : 'POST';
+
+    const formData = new FormData();
+    formData.append('name', subName);
+    formData.append('category_id', subCatId);
+    formData.append('allow_showcase_images', allowShowcase);
+    if (subImage) formData.append('image', subImage);
+
     try {
-      await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: subName, category_id: subCatId }) });
+      await fetch(url, { method, body: formData });
       setShowSubModal(false);
       fetchData();
     } catch(err) {}
@@ -115,7 +134,7 @@ export default function AdminCategories() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
         {/* Categories */}
         <div className="admin-card" style={{ padding: 0 }}>
           <div style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0' }}>
@@ -140,7 +159,14 @@ export default function AdminCategories() {
             <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {categories.map(c => (
                 <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#f8fafc', borderRadius: '8px', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 500 }}>{c.name}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {c.image ? (
+                      <img src={c.image} alt={c.name} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '12px' }}>No Img</div>
+                    )}
+                    <span style={{ fontWeight: 500 }}>{c.name}</span>
+                  </div>
                   <div>
                     <button onClick={() => openCatModal(c)} style={{marginRight: '8px', color: '#3b82f6', border: 'none', background: 'none', cursor: 'pointer'}}>Edit</button>
                     <button onClick={() => handleDeleteCat(c.id)} style={{color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer'}}>Delete</button>
@@ -180,9 +206,16 @@ export default function AdminCategories() {
                 const parent = categories.find(c => c.id === s.category_id);
                 return (
                   <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#f8fafc', borderRadius: '8px', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontWeight: 500 }}>{s.name}</div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>in {parent ? parent.name : 'Unknown'}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      {s.image ? (
+                        <img src={s.image} alt={s.name} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '12px' }}>No Img</div>
+                      )}
+                      <div>
+                        <div style={{ fontWeight: 500 }}>{s.name}</div>
+                        <div style={{ fontSize: '12px', color: '#64748b' }}>in {parent ? parent.name : 'Unknown'}</div>
+                      </div>
                     </div>
                     <div>
                       <button onClick={() => openSubModal(s)} style={{marginRight: '8px', color: '#3b82f6', border: 'none', background: 'none', cursor: 'pointer'}}>Edit</button>
@@ -206,9 +239,16 @@ export default function AdminCategories() {
                 <input type="text" required style={{width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0'}} 
                   value={catName} onChange={e => setCatName(e.target.value)} disabled={isSubmitting} />
               </div>
+              <div>
+                <label style={{display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600}}>Category Image</label>
+                <input type="file" accept="image/*" style={{width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid #e2e8f0'}} 
+                  onChange={e => setCatImage(e.target.files[0])} disabled={isSubmitting} />
+              </div>
               <div style={{display: 'flex', gap: '12px'}}>
-                <button type="submit" className="admin-btn-primary" style={{flex: 1}} disabled={isSubmitting}>Save</button>
-                <button type="button" className="modal-close" style={{flex: 1}} onClick={() => setShowCatModal(false)}>Cancel</button>
+                <button type="submit" className="admin-btn-primary" style={{flex: 1}} disabled={isSubmitting}>
+                  {isSubmitting ? 'Saving...' : 'Save'}
+                </button>
+                <button type="button" className="modal-close" style={{flex: 1}} onClick={() => setShowCatModal(false)} disabled={isSubmitting}>Cancel</button>
               </div>
             </form>
           </div>
@@ -232,9 +272,20 @@ export default function AdminCategories() {
                 <input type="text" required style={{width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0'}} 
                   value={subName} onChange={e => setSubName(e.target.value)} disabled={isSubmitting} />
               </div>
+              <div>
+                <label style={{display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600}}>Subcategory Image</label>
+                <input type="file" accept="image/*" style={{width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid #e2e8f0'}} 
+                  onChange={e => setSubImage(e.target.files[0])} disabled={isSubmitting} />
+              </div>
+              <div style={{display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '12px', borderRadius: '8px'}}>
+                <input type="checkbox" id="allowShowcase" checked={allowShowcase} onChange={e => setAllowShowcase(e.target.checked)} disabled={isSubmitting} style={{width: '16px', height: '16px'}} />
+                <label htmlFor="allowShowcase" style={{fontSize: '14px', fontWeight: 500, cursor: 'pointer', margin: 0}}>Allow Workers to Upload Showcase Images</label>
+              </div>
               <div style={{display: 'flex', gap: '12px'}}>
-                <button type="submit" className="admin-btn-primary" style={{flex: 1}} disabled={isSubmitting}>Save</button>
-                <button type="button" className="modal-close" style={{flex: 1}} onClick={() => setShowSubModal(false)}>Cancel</button>
+                <button type="submit" className="admin-btn-primary" style={{flex: 1}} disabled={isSubmitting}>
+                  {isSubmitting ? 'Saving...' : 'Save'}
+                </button>
+                <button type="button" className="modal-close" style={{flex: 1}} onClick={() => setShowSubModal(false)} disabled={isSubmitting}>Cancel</button>
               </div>
             </form>
           </div>

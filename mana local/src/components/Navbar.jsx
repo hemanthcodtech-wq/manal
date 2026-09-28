@@ -101,14 +101,14 @@ export default function Navbar() {
           {user && (
             <div className="user-menu" ref={dropRef}>
               <button className="avatar-btn" onClick={() => setDropOpen(o => !o)}>
-                <span className="avatar-circle">{user.name.charAt(0).toUpperCase()}</span>
-                <span className="avatar-name">{user.name.split(' ')[0]}</span>
+                <span className="avatar-circle">{(user.name || 'U').charAt(0).toUpperCase()}</span>
+                <span className="avatar-name">{(user.name || 'User').split(' ')[0]}</span>
                 {dropOpen ? <HiChevronUp className="chevron-icon" /> : <HiChevronDown className="chevron-icon" />}
               </button>
               {dropOpen && (
                 <div className="dropdown">
                   <div className="drop-header">
-                    <strong>{user.name}</strong>
+                    <strong>{user.name || 'User'}</strong>
                     <span className={`role-tag ${user.role}`}>{user.role}</span>
                   </div>
                   <div className="drop-email">{user.email}</div>

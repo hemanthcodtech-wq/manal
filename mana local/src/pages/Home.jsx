@@ -20,12 +20,16 @@ import { GiCrane, GiPickelhaube } from 'react-icons/gi';
 import { TbTruckDelivery } from 'react-icons/tb';
 import './Home.css';
 
-const BANNERS = [
-  { id: 1, tag: 'Most Booked', title: 'JCB on Demand', sub: 'Backhoe Loader at your site in 60 mins', cta: 'Book JCB', vehicleId: 'jcb', bg: 'linear-gradient(135deg, #0369a1, #0284c7)', accent: '#fff', img: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=700&q=80' },
-  { id: 2, tag: 'Instant Booking', title: 'Crane Hire Made Easy', sub: 'Tower & Mobile cranes for any project', cta: 'Book Crane', vehicleId: 'crane', bg: 'linear-gradient(135deg, #0f766e, #115e59)', accent: '#fff', img: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=700&q=80' },
-  { id: 3, tag: 'Fast Delivery', title: 'Tipper Trucks Ready', sub: 'Sand, gravel & debris transport — same day', cta: 'Book Tipper', vehicleId: 'dump-truck', bg: 'linear-gradient(135deg, #0284c7, #10b981)', accent: '#fff', img: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=700&q=80' },
-  { id: 4, tag: 'Heavy Lifting', title: 'Bulldozer & Grader', sub: 'Land leveling & road construction experts', cta: 'Book Now', vehicleId: 'bulldozer', bg: 'linear-gradient(135deg, #059669, #047857)', accent: '#fff', img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=80' },
-];
+const MANA_LOCAL_BANNER = {
+  id: 'default',
+  tag: 'Welcome to',
+  title: 'Mana Local',
+  sub: 'Your trusted platform for booking verified local professionals instantly.',
+  cta: 'Explore Services',
+  bg: 'linear-gradient(135deg, #1e40af, #3b82f6)',
+  accent: '#fff',
+  img: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=1200&q=80'
+};
 
 const WHY = [
   { Icon: MdOutlineVerified, t: 'Verified Professionals',  d: 'All workers are background-checked and highly skilled.', color: '#3b82f6' },
@@ -66,29 +70,137 @@ export default function Home() {
   const containerRef = useScrollReveal();
   const [bannerIdx, setBannerIdx] = useState(0);
   
-  const { data: services, loading: servicesLoading } = useDataFetch(highlightedServices, 2000);
+  const [activeAds, setActiveAds] = useState([]);
+  const [showVideoAd, setShowVideoAd] = useState(false);
+  const [dbCategories, setDbCategories] = useState([]);
+  const [dbSubcategories, setDbSubcategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   useEffect(() => {
-    const t = setInterval(() => setBannerIdx(i => (i + 1) % BANNERS.length), 4500);
-    return () => clearInterval(t);
+    fetchAds();
+    fetchCategoriesData();
   }, []);
 
-  const banner = BANNERS[bannerIdx];
-  const isDark = banner.accent === '#fff';
+  const fetchCategoriesData = async () => {
+    try {
+      const [catRes, subRes] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_URL}/api/public/categories`),
+        fetch(`${import.meta.env.VITE_API_URL}/api/public/subcategories/all`)
+      ]);
+      const catData = await catRes.json();
+      const subData = await subRes.json();
+      if (catData.success) {
+        setDbCategories(catData.categories);
+      }
+      if (subData.success) {
+        setDbSubcategories(subData.subcategories);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  const fetchAds = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/public/active-ads`);
+      const data = await res.json();
+      if (data.success && data.ads.length > 0) {
+        setActiveAds(data.ads);
+        // If there's a video ad, show it
+        const videoAd = data.ads.find(a => {
+          const url = a.ad_image_url;
+          return url && (url.match(/\.(mp4|webm|ogg|mov|mkv)$/i) || url.includes('/video/upload/'));
+        });
+        if (videoAd) {
+          setShowVideoAd(true);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Helper to detect video URLs from Cloudinary or extensions
+  const isVideoUrl = (url) => {
+    if (!url) return false;
+    return url.match(/\.(mp4|webm|ogg|mov|mkv)$/i) || url.includes('/video/upload/');
+  };
+
+  // Combine default banners with image ads
+  const imageAds = activeAds.filter(a => !isVideoUrl(a.ad_image_url)).map(a => ({
+    id: `ad_${a.id}`,
+    tag: 'Promoted',
+    title: a.plan_name || 'Special Offer',
+    sub: 'Verified Professional Ad',
+    cta: 'View',
+    vehicleId: '',
+    bg: 'linear-gradient(135deg, #059669, #047857)',
+    accent: '#fff',
+    img: a.ad_image_url
+  }));
+  const displayBanners = [MANA_LOCAL_BANNER, ...imageAds];
+
+  useEffect(() => {
+    if (displayBanners.length <= 1) return;
+    const delay = bannerIdx === 0 ? 2000 : 5000;
+    const t = setTimeout(() => {
+      setBannerIdx((bannerIdx + 1) % displayBanners.length);
+    }, delay);
+    return () => clearTimeout(t);
+  }, [bannerIdx, displayBanners.length]);
+
+  const banner = displayBanners[bannerIdx];
+  const isDark = banner?.accent === '#fff';
+
+  const videoAd = activeAds.find(a => isVideoUrl(a.ad_image_url));
 
   return (
     <div className="home" ref={containerRef}>
+      
+      {/* ── Video Ad Modal ── */}
+      {showVideoAd && videoAd && (
+        <div className="modal-overlay" style={{ zIndex: 9999, background: 'rgba(0,0,0,0.85)' }}>
+          <div className="modal" style={{ padding: '20px', maxWidth: '600px', width: '90%', textAlign: 'center', background: '#1e293b' }}>
+            <h3 style={{ color: '#fff', marginBottom: '8px' }}>Watch this Ad to Unlock Content</h3>
+            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '20px' }}>Support our local professionals</p>
+            <video 
+              src={videoAd.ad_image_url} 
+              autoPlay 
+              controls 
+              style={{ width: '100%', borderRadius: '12px', marginBottom: '20px' }} 
+            />
+            <button 
+              onClick={() => setShowVideoAd(false)}
+              style={{ padding: '12px 24px', background: 'var(--primary)', color: '#fff', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', width: '100%' }}
+            >
+              Close & Continue to Website
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Hero Banner ── */}
-      <section className="hero-banner elegant-banner reveal-fade-in">
-        <img src={banner.img} alt={banner.title} className="eb-bg" />
-        
-        <div className="eb-dots">
-          {BANNERS.map((_, i) => (
-            <button key={i} className={`eb-dot ${i === bannerIdx ? 'active' : ''}`} onClick={() => setBannerIdx(i)} />
-          ))}
-        </div>
-      </section>
+      {displayBanners.length > 0 && banner && (
+        <section className="hero-banner elegant-banner reveal-fade-in" style={{ cursor: banner.id !== 'default' ? 'pointer' : 'default' }}>
+          <img src={banner.img} alt={banner.title} className="eb-bg" style={{ objectFit: banner.id === 'default' ? 'cover' : 'contain', width: '100%', height: '100%', background: banner.id !== 'default' ? '#0f172a' : 'transparent' }} />
+          
+          {banner.id === 'default' && (
+            <div className="eb-content" style={{ padding: '40px 20px', position: 'absolute', bottom: '0', left: '0', right: '0', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
+              <span className="eb-tag" style={{ background: 'var(--primary)', color: '#fff', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>{banner.tag}</span>
+              <h1 style={{ color: '#fff', fontSize: '32px', margin: '8px 0', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{banner.title}</h1>
+              <p style={{ color: '#f8fafc', fontSize: '14px', maxWidth: '80%', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{banner.sub}</p>
+            </div>
+          )}
+
+          <div className="eb-dots">
+            {displayBanners.map((_, i) => (
+              <button key={i} className={`eb-dot ${i === bannerIdx ? 'active' : ''}`} onClick={() => setBannerIdx(i)} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── Stats Bar ── */}
       <section className="stats-bar reveal-on-scroll">
@@ -150,24 +262,26 @@ export default function Home() {
             <button className="see-all-btn" onClick={() => navigate('/browse')}>See all <HiChevronRight style={{ width: 14, height: 14, verticalAlign: 'middle' }} /></button>
           </div>
           <div className="h-scroll">
-            {servicesLoading ? (
+            {categoriesLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="service-card reveal-on-scroll" style={{ padding: '10px' }}>
                   <Skeleton type="card" style={{ height: '120px', marginBottom: '10px' }} />
                   <Skeleton type="title" style={{ width: '60%' }} />
-                  <Skeleton type="text" count={2} />
                 </div>
               ))
             ) : (
-              services.map(s => (
-                <div key={s.id} className="service-card reveal-on-scroll" onClick={() => navigate(`/workers?service=${s.id}`)}>
-                  <div className="sc-img-wrap">
-                    <img src={s.image} alt={s.name} className="sc-img" />
-                    <div className="sc-rating"><HiStar style={{ width: 11, height: 11, color: '#f59e0b' }} /> {s.rating}</div>
+              dbCategories.map(c => (
+                <div key={c.id} className="service-card reveal-on-scroll" onClick={() => navigate(`/category/${c.id}`)}>
+                  <div className="sc-img-wrap" style={{ height: '120px', background: 'linear-gradient(135deg, #1e293b, #334155)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {c.image ? (
+                      <img src={c.image} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <h3 style={{ color: '#fff', textAlign: 'center', padding: '10px', margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{c.name}</h3>
+                    )}
                   </div>
                   <div className="sc-body">
-                    <div className="sc-name">{s.name}</div>
-                    <div className="sc-desc">{s.desc}</div>
+                    <div className="sc-name">{c.name}</div>
+                    <div className="sc-desc">Explore subcategories</div>
                   </div>
                 </div>
               ))
@@ -176,13 +290,45 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Video Showcase ── */}
+      <section className="section section-dark reveal-on-scroll">
+        <div className="section-inner">
+          <div className="section-header" style={{ marginBottom: '24px' }}>
+            <h2 className="white-h2">Mana Local in Action</h2>
+            <p className="white-sub">See how our verified professionals deliver excellence.</p>
+          </div>
+          <div className="h-scroll" style={{ paddingBottom: '20px' }}>
+            {['video1.mp4', 'video2.mp4', 'video3.mp4'].map((vid, idx) => (
+              <div key={idx} style={{ 
+                flex: '0 0 280px', // Fixed width for side-by-side scrolling
+                borderRadius: '16px', overflow: 'hidden', background: '#0f172a', 
+                boxShadow: '0 10px 25px rgba(0,0,0,0.3)', border: '1px solid #334155',
+                position: 'relative', paddingTop: '497px' /* 280 * 16/9 = 497px */
+              }}>
+                <video 
+                  src={`/videos/${vid}`}
+                  controls
+                  preload="metadata"
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Roadmap ── */}
       <Roadmap />
 
       {/* ── Category Scroll Sections ── */}
-      {categories.map((cat, idx) => {
-        const CatIcon = CAT_ICONS[cat.id] || MdConstruction;
-        const color = CAT_COLORS[cat.id] || '#ff6b00';
+      {dbCategories.map((cat, idx) => {
+        const catSubs = dbSubcategories.filter(s => s.category_id === cat.id);
+        if (catSubs.length === 0) return null; // Skip if no subcategories
+
+        // Use a generic icon if not mapped, mapped by category name rather than id to be flexible
+        const CatIcon = CAT_ICONS[cat.name.toLowerCase()] || MdConstruction;
+        const color = CAT_COLORS[cat.name.toLowerCase()] || '#ff6b00';
+        
         return (
           <section key={cat.id} className={`section ${idx % 2 === 1 ? 'section-gray' : ''}`}>
             <div className="section-inner">
@@ -192,24 +338,30 @@ export default function Home() {
                     <CatIcon className="cat-section-icon" />
                   </div>
                   <div>
-                    <h2>{cat.label}</h2>
-                    <span className="cat-section-count">{cat.vehicles.length} services</span>
+                    <h2>{cat.name}</h2>
+                    <span className="cat-section-count">{catSubs.length} services</span>
                   </div>
                 </div>
-                <button className="see-all-btn" onClick={() => navigate(`/browse?cat=${cat.id}`)}>See all <HiChevronRight style={{ width: 14, height: 14, verticalAlign: 'middle' }} /></button>
+                <button className="see-all-btn" onClick={() => navigate(`/category/${cat.id}`)}>See all <HiChevronRight style={{ width: 14, height: 14, verticalAlign: 'middle' }} /></button>
               </div>
               <div className="h-scroll">
-                {cat.vehicles.map(v => (
-                  <div key={v.id} className="hs-card" onClick={() => navigate(`/workers?service=${v.id}`)}>
+                {catSubs.map(sub => (
+                  <div key={sub.id} className="hs-card" onClick={() => navigate(`/workers?subcategory=${sub.id}&name=${encodeURIComponent(sub.name)}`)}>
                     <div className="hs-img-wrap">
-                      <img src={v.image} alt={v.name} className="hs-img" />
+                      {sub.image ? (
+                        <img src={sub.image} alt={sub.name} className="hs-img" />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', color: '#94a3b8', fontWeight: 'bold' }}>
+                          {sub.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <div className="hs-overlay">
                         <span className="hs-avail">✓ Available</span>
                       </div>
                     </div>
                     <div className="hs-body">
-                      <div className="hs-name">{v.name}</div>
-                      <div className="hs-desc">{v.desc}</div>
+                      <div className="hs-name">{sub.name}</div>
+                      <div className="hs-desc">Find {sub.name.toLowerCase()} professionals</div>
                     </div>
                   </div>
                 ))}

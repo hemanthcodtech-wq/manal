@@ -1,8 +1,27 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 const { sendVerificationEmail, sendOtpEmail } = require('../utils/email');
 const router = express.Router();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'worker_avatars',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    public_id: (req, file) => 'avatar_' + Date.now(),
+  },
+});
+const uploadAvatar = multer({ storage });
 
 const otpStore = {}; // Memory store for OTPs
 
@@ -26,6 +45,13 @@ module.exports = (pool) => {
     }
   });
 
+  router.post('/upload-avatar', uploadAvatar.single('avatar'), (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No file uploaded' });
+    }
+    res.json({ success: true, url: req.file.path });
+  });
+
   router.post('/verify-otp', async (req, res) => {
     const { email, otp } = req.body;
     if (!email || !otp) return res.status(400).json({ error: 'Email and OTP required' });
@@ -45,11 +71,42 @@ module.exports = (pool) => {
         res.status(400).json({ error: 'Invalid OTP' });
     }
   });
+
+  router.post('/lead-verify', async (req, res) => {
+    const { email, name, phone, mode } = req.body;
+    try {
+      const userCheck = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+      
+      if (mode === 'existing') {
+        if (userCheck.rows.length > 0) {
+          return res.json({ success: true, verified: true });
+        } else {
+          return res.status(400).json({ success: false, error: 'Email not found. Please verify as a new user.' });
+        }
+      } else {
+        // mode === 'new'
+        if (userCheck.rows.length > 0) {
+          return res.status(400).json({ success: false, error: 'Email already exists. Please login instead.' });
+        }
+        
+        const hashedPassword = await bcrypt.hash(Date.now().toString(), 10);
+        await pool.query(
+          "INSERT INTO users (name, email, phone, password, role, is_verified) VALUES ($1, $2, $3, $4, $5, $6)",
+          [name, email, phone, hashedPassword, 'customer', true]
+        );
+        return res.json({ success: true, verified: true, created: true });
+      }
+    } catch (error) {
+      console.error('Lead Verify Error:', error);
+      res.status(500).json({ success: false, error: 'Server Error' });
+    }
+  });
+
   const signup = async (req, res, role) => {
     const { 
       name, email, phone, password, 
       category_id, subcategory_id, plan_id, payment_id, 
-      aadhar_no, experience, address 
+      aadhar_no, experience, address, avatar
     } = req.body;
     
     try {
@@ -67,14 +124,14 @@ module.exports = (pool) => {
       const insertQuery = `
         INSERT INTO users (
           name, email, phone, password, role, is_verified, 
-          category_id, subcategory_id, plan_id, payment_id, aadhar_no, experience, location
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *
+          category_id, subcategory_id, plan_id, payment_id, aadhar_no, experience, location, avatar
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *
       `;
       
       const result = await pool.query(insertQuery, [
         name, email, phone, hashedPassword, role, is_verified,
         category_id || null, subcategory_id || null, plan_id || null, payment_id || null, 
-        aadhar_no || null, experience || null, address || null
+        aadhar_no || null, experience || null, address || null, avatar || null
       ]);
 
       const newUser = result.rows[0];

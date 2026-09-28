@@ -1,6 +1,6 @@
 import { NavLink, Link, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
-import { HiHome, HiUser, HiBriefcase, HiCurrencyRupee, HiSupport } from 'react-icons/hi';
+import { HiHome, HiUser, HiBriefcase, HiCurrencyRupee, HiSupport, HiPhotograph, HiIdentification } from 'react-icons/hi';
 import logo from '../../assets/logo.png';
 import './Worker.css';
 
@@ -8,7 +8,9 @@ const NAV = [
   { to: '/worker',                icon: HiHome,           label: 'Dashboard'  },
   { to: '/worker/services',       icon: HiBriefcase,      label: 'Services'   },
   { to: '/worker/subscription',   icon: HiCurrencyRupee,  label: 'Plan'       },
+  { to: '/worker/ads',            icon: HiPhotograph,     label: 'Ads'        },
   { to: '/worker/profile',        icon: HiUser,           label: 'Profile'    },
+  { to: '/worker/id-card',        icon: HiIdentification, label: 'ID Card'    },
   { to: '/worker/support',        icon: HiSupport,        label: 'Support'    },
 ];
 
@@ -37,9 +39,9 @@ export default function WorkerLayout() {
         </nav>
 
         <div className="ws-user">
-          <div className="wth-avatar">{user.name.charAt(0)}</div>
+          <div className="wth-avatar">{(user.name || 'W').charAt(0).toUpperCase()}</div>
           <div className="wth-info">
-            <strong>{user.name.split(' ')[0]}</strong>
+            <strong>{(user.name || 'Worker').split(' ')[0]}</strong>
             <span className={`wth-status ${user.available ? 'online' : 'offline'}`}>
               {user.available ? '● Online' : '○ Offline'}
             </span>
@@ -56,7 +58,7 @@ export default function WorkerLayout() {
           <span className="wth-badge">Worker</span>
         </div>
         <div className="wth-user">
-          <div className="wth-avatar">{user.name.charAt(0)}</div>
+          <div className="wth-avatar">{(user.name || 'W').charAt(0).toUpperCase()}</div>
         </div>
       </header>
 

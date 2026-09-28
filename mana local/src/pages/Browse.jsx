@@ -1,39 +1,41 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { categories, services as allServices } from '../data/services';
-import { useStore } from '../store/useStore';
 import { HiSearch, HiFilter, HiHome, HiArrowRight } from 'react-icons/hi';
-import { MdConstruction, MdCleaningServices } from 'react-icons/md';
+import { MdConstruction } from 'react-icons/md';
 import { useScrollReveal } from '../hooks/useScrollReveal';
+import Skeleton from '../components/Skeleton';
 import './Browse.css';
-
-const CAT_ICONS = {
-  'home-services': HiHome,
-  'cleaning': MdCleaningServices,
-  'construction': MdConstruction,
-};
 
 const FALLBACK = 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80';
 
 export default function Browse() {
   const containerRef = useScrollReveal();
   const [params] = useSearchParams();
-  const [activeCat, setActiveCat] = useState(params.get('cat') || 'all');
   const [search, setSearch] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const cat = params.get('cat');
-    if (cat) setActiveCat(cat);
-  }, [params]);
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/public/categories`);
+        const data = await res.json();
+        if (data.success) {
+          setCategories(data.categories);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-  const filtered = allServices.filter(v => {
-    const matchCat = activeCat === 'all' || v.category === activeCat;
-    const matchSearch =
-      v.name.toLowerCase().includes(search.toLowerCase()) ||
-      v.desc.toLowerCase().includes(search.toLowerCase());
-    return matchCat && matchSearch;
-  });
+  const filtered = categories.filter(c =>
+    c.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="browse" ref={containerRef}>
@@ -54,53 +56,42 @@ export default function Browse() {
         </div>
       </div>
 
-      {/* Category Tabs */}
-      <div className="cat-tabs reveal-on-scroll">
-        <button className={activeCat === 'all' ? 'active' : ''} onClick={() => setActiveCat('all')}>
-          <MdConstruction className="tab-icon" /> All Services
-        </button>
-        {categories.map(c => {
-          const Icon = CAT_ICONS[c.id] || MdConstruction;
-          return (
-            <button
-              key={c.id}
-              className={activeCat === c.id ? 'active' : ''}
-              onClick={() => setActiveCat(c.id)}
-            >
-              <Icon className="tab-icon" /> {c.label}
-            </button>
-          );
-        })}
-      </div>
-
       {/* Grid */}
       <div className="vehicles-grid">
-        {filtered.map(v => (
-          <div key={v.id} className="vehicle-card reveal-on-scroll" onClick={() => navigate(`/workers?service=${v.id}`)}>
-            <div className="vc-img-wrap">
-              <img
-                src={v.image || FALLBACK}
-                alt={v.name}
-                className="vc-img"
-                onError={e => { e.target.src = FALLBACK; }}
-              />
+        {loading ? (
+          Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="vehicle-card reveal-on-scroll">
+              <Skeleton type="card" style={{ height: '160px', marginBottom: '10px' }} />
+              <Skeleton type="title" style={{ width: '60%', margin: '0 16px' }} />
+              <Skeleton type="text" style={{ width: '80%', margin: '0 16px 16px' }} />
             </div>
-            <div className="vc-body">
-              <h3>{v.name}</h3>
-              <p>{v.desc}</p>
-              
-              <div className="vc-footer" style={{ marginTop: '16px' }}>
-                <span style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '14px' }}>
-                  View Professionals <HiArrowRight style={{ verticalAlign: 'middle', marginLeft: '4px' }} />
-                </span>
+          ))
+        ) : filtered.length > 0 ? (
+          filtered.map(c => (
+            <div key={c.id} className="vehicle-card reveal-on-scroll" onClick={() => navigate(`/category/${c.id}`)}>
+              <div className="vc-img-wrap" style={{ height: '160px', background: 'linear-gradient(135deg, #1e293b, #334155)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                {c.image ? (
+                  <img src={c.image} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <h3 style={{ color: '#fff', textAlign: 'center', padding: '10px', margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.3)', fontSize: '24px' }}>{c.name}</h3>
+                )}
+              </div>
+              <div className="vc-body">
+                <h3>{c.name}</h3>
+                <p>Explore {c.name.toLowerCase()} subcategories and professionals.</p>
+                
+                <div className="vc-footer" style={{ marginTop: '16px' }}>
+                  <span style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '14px' }}>
+                    View Subcategories <HiArrowRight style={{ verticalAlign: 'middle', marginLeft: '4px' }} />
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-        {filtered.length === 0 && (
+          ))
+        ) : (
           <div className="empty-state">
             <HiFilter style={{ width: 40, height: 40, color: '#ddd', marginBottom: 12 }} />
-            <p>No services found. Try a different search.</p>
+            <p>No categories found. Try a different search.</p>
           </div>
         )}
       </div>

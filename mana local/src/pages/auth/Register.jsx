@@ -16,6 +16,7 @@ export default function Register() {
   const [step, setStep] = useState(1);  // 1: form, 2: worker details, 3: plan, 4: otp
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '' });
   const [workerForm, setWorkerForm] = useState({ category_id: '', subcategory_id: '', licenseNo: '', experience: '', address: '', plan_id: '' });
+  const [avatarFile, setAvatarFile] = useState(null);
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -257,7 +258,22 @@ export default function Register() {
 
   const finalizeRegistration = async (paymentId = null) => {
     setLoading(true);
-    await new Promise(r => setTimeout(r, 600));
+    let uploadedAvatarUrl = null;
+    if (avatarFile) {
+      try {
+        const fd = new FormData();
+        fd.append('avatar', avatarFile);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/upload-avatar`, {
+          method: 'POST',
+          body: fd
+        });
+        const d = await res.json();
+        if (d.success) uploadedAvatarUrl = d.url;
+      } catch (err) {
+        console.error('Avatar upload failed', err);
+      }
+    }
+
     const data = {
       name: form.name, email: form.email,
       phone: form.phone, password: form.password,
@@ -272,6 +288,7 @@ export default function Register() {
         aadhar_no: workerForm.licenseNo,
         experience: workerForm.experience,
         address: workerForm.address,
+        avatar: uploadedAvatarUrl,
         rating: 4.5,
         jobsDone: 0,
         available: false,
@@ -373,6 +390,11 @@ export default function Register() {
             <h1>Professional Details</h1>
             <p className="auth-sub">Tell us about your skills & experience</p>
             <form onSubmit={handleWorkerNext}>
+              <label>Profile Picture (Optional)
+                <div className="input-wrap">
+                  <input type="file" accept="image/*" onChange={e => setAvatarFile(e.target.files[0])} style={{ padding: '8px' }} />
+                </div>
+              </label>
               <label>Category
                 <div className="input-wrap">
                   <HiBriefcase className="input-icon" />

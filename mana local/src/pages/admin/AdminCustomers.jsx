@@ -45,9 +45,6 @@ export default function AdminCustomers() {
                 <Skeleton type="text" style={{ width: '180px' }} />
                 <Skeleton type="text" style={{ width: '140px' }} />
               </div>
-              <div className="cc-stats">
-                <Skeleton type="card" style={{ width: '100%', height: '40px' }} />
-              </div>
             </div>
           ))}
         </div>
@@ -79,11 +76,6 @@ export default function AdminCustomers() {
                 <div className="cc-info">
                   <div className="cc-row"><HiMail className="cc-icon" />{c.email}</div>
                   <div className="cc-row"><HiPhone className="cc-icon" />{c.phone || '—'}</div>
-                </div>
-                <div className="cc-stats">
-                  <div><strong>0</strong><span>Orders</span></div>
-                  <div><strong>₹0</strong><span>Spent</span></div>
-                  <div><strong>0</strong><span>Completed</span></div>
                 </div>
               </div>
             );

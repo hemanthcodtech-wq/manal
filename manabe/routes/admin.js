@@ -435,22 +435,38 @@ module.exports = (pool, redisClient) => {
     }
   });
 
-  router.post('/categories', async (req, res) => {
+  router.post('/categories', uploadMedia.single('image'), async (req, res) => {
     try {
       const { name } = req.body;
-      const result = await pool.query('INSERT INTO categories (name) VALUES ($1) RETURNING *', [name]);
+      const imageUrl = req.file ? req.file.path : null;
+      const result = await pool.query('INSERT INTO categories (name, image) VALUES ($1, $2) RETURNING *', [name, imageUrl]);
+      if (redisClient && redisClient.isReady) await redisClient.del('public_categories').catch(console.error);
       res.json({ success: true, category: result.rows[0] });
     } catch (error) {
+      console.error(error);
       res.status(500).json({ error: 'Failed to create category' });
     }
   });
 
-  router.put('/categories/:id', async (req, res) => {
+  router.put('/categories/:id', uploadMedia.single('image'), async (req, res) => {
     try {
       const { name } = req.body;
-      const result = await pool.query('UPDATE categories SET name = $1 WHERE id = $2 RETURNING *', [name, req.params.id]);
+      let query = 'UPDATE categories SET name = $1';
+      let params = [name];
+      if (req.file) {
+        query += ', image = $2';
+        params.push(req.file.path);
+        query += ' WHERE id = $3 RETURNING *';
+        params.push(req.params.id);
+      } else {
+        query += ' WHERE id = $2 RETURNING *';
+        params.push(req.params.id);
+      }
+      const result = await pool.query(query, params);
+      if (redisClient && redisClient.isReady) await redisClient.del('public_categories').catch(console.error);
       res.json({ success: true, category: result.rows[0] });
     } catch (error) {
+      console.error(error);
       res.status(500).json({ error: 'Failed to update category' });
     }
   });
@@ -458,6 +474,7 @@ module.exports = (pool, redisClient) => {
   router.delete('/categories/:id', async (req, res) => {
     try {
       await pool.query('DELETE FROM categories WHERE id = $1', [req.params.id]);
+      if (redisClient && redisClient.isReady) await redisClient.del('public_categories').catch(console.error);
       res.json({ success: true, message: 'Category deleted' });
     } catch (error) {
       res.status(500).json({ error: 'Failed to delete category' });
@@ -474,22 +491,42 @@ module.exports = (pool, redisClient) => {
     }
   });
 
-  router.post('/subcategories', async (req, res) => {
+  router.post('/subcategories', uploadMedia.single('image'), async (req, res) => {
     try {
-      const { category_id, name } = req.body;
-      const result = await pool.query('INSERT INTO subcategories (category_id, name) VALUES ($1, $2) RETURNING *', [category_id, name]);
+      const { category_id, name, allow_showcase_images } = req.body;
+      const imageUrl = req.file ? req.file.path : null;
+      const allowShowcase = allow_showcase_images === 'true' || allow_showcase_images === true;
+      const result = await pool.query('INSERT INTO subcategories (category_id, name, image, allow_showcase_images) VALUES ($1, $2, $3, $4) RETURNING *', [category_id, name, imageUrl, allowShowcase]);
+      if (redisClient && redisClient.isReady) await redisClient.del(`public_subcategories_${category_id}`).catch(console.error);
       res.json({ success: true, subcategory: result.rows[0] });
     } catch (error) {
+      console.error(error);
       res.status(500).json({ error: 'Failed to create subcategory' });
     }
   });
 
-  router.put('/subcategories/:id', async (req, res) => {
+  router.put('/subcategories/:id', uploadMedia.single('image'), async (req, res) => {
     try {
-      const { category_id, name } = req.body;
-      const result = await pool.query('UPDATE subcategories SET category_id = $1, name = $2 WHERE id = $3 RETURNING *', [category_id, name, req.params.id]);
+      const { category_id, name, allow_showcase_images } = req.body;
+      const allowShowcase = allow_showcase_images === 'true' || allow_showcase_images === true;
+      let query = 'UPDATE subcategories SET category_id = $1, name = $2, allow_showcase_images = $3';
+      let params = [category_id, name, allowShowcase];
+      
+      if (req.file) {
+        query += ', image = $4';
+        params.push(req.file.path);
+        query += ' WHERE id = $5 RETURNING *';
+        params.push(req.params.id);
+      } else {
+        query += ' WHERE id = $4 RETURNING *';
+        params.push(req.params.id);
+      }
+      
+      const result = await pool.query(query, params);
+      if (redisClient && redisClient.isReady) await redisClient.del(`public_subcategories_${category_id}`).catch(console.error);
       res.json({ success: true, subcategory: result.rows[0] });
     } catch (error) {
+      console.error(error);
       res.status(500).json({ error: 'Failed to update subcategory' });
     }
   });
@@ -497,9 +534,106 @@ module.exports = (pool, redisClient) => {
   router.delete('/subcategories/:id', async (req, res) => {
     try {
       await pool.query('DELETE FROM subcategories WHERE id = $1', [req.params.id]);
+      // Note: Delete wildcard logic or specific category key would go here.
       res.json({ success: true, message: 'Subcategory deleted' });
     } catch (error) {
       res.status(500).json({ error: 'Failed to delete subcategory' });
+    }
+  });
+
+  // --- Promo Plans ---
+  router.get('/promo-plans', async (req, res) => {
+    try {
+      const result = await pool.query("SELECT * FROM promo_plans ORDER BY created_at DESC");
+      res.json({ success: true, plans: result.rows });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch promo plans' });
+    }
+  });
+
+  router.post('/promo-plans', async (req, res) => {
+    try {
+      const { name, price, duration_days, features, status, ad_type } = req.body;
+      const result = await pool.query(
+        'INSERT INTO promo_plans (name, price, duration_days, features, status, ad_type) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', 
+        [name, price, duration_days, features, status || 'active', ad_type || 'both']
+      );
+      res.json({ success: true, plan: result.rows[0] });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create promo plan' });
+    }
+  });
+
+  router.put('/promo-plans/:id', async (req, res) => {
+    try {
+      const { name, price, duration_days, features, status, ad_type } = req.body;
+      const result = await pool.query(
+        'UPDATE promo_plans SET name = $1, price = $2, duration_days = $3, features = $4, status = $5, ad_type = $6 WHERE id = $7 RETURNING *', 
+        [name, price, duration_days, features, status, ad_type || 'both', req.params.id]
+      );
+      res.json({ success: true, plan: result.rows[0] });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update promo plan' });
+    }
+  });
+
+  router.delete('/promo-plans/:id', async (req, res) => {
+    try {
+      await pool.query('DELETE FROM promo_plans WHERE id = $1', [req.params.id]);
+      res.json({ success: true, message: 'Promo plan deleted' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete promo plan' });
+    }
+  });
+
+  // --- Promo Ads ---
+  router.get('/promo-ads', async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT a.*, u.name as user_name, u.email as user_email, p.name as plan_name, p.price as plan_price
+        FROM promo_ads a
+        LEFT JOIN users u ON a.user_id = u.id
+        LEFT JOIN promo_plans p ON a.plan_id = p.id
+        ORDER BY a.created_at DESC
+      `);
+      res.json({ success: true, ads: result.rows });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch promo ads' });
+    }
+  });
+
+  router.post('/promo-ads', async (req, res) => {
+    try {
+      const { user_id, plan_id, ad_image_url, ad_link, start_date, end_date, status } = req.body;
+      const result = await pool.query(
+        'INSERT INTO promo_ads (user_id, plan_id, ad_image_url, ad_link, start_date, end_date, status) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *', 
+        [user_id, plan_id, ad_image_url, ad_link, start_date || new Date(), end_date || null, status || 'active']
+      );
+      res.json({ success: true, ad: result.rows[0] });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create promo ad' });
+    }
+  });
+
+  router.put('/promo-ads/:id', async (req, res) => {
+    try {
+      const { user_id, plan_id, ad_image_url, ad_link, start_date, end_date, status } = req.body;
+      const result = await pool.query(
+        'UPDATE promo_ads SET user_id = $1, plan_id = $2, ad_image_url = $3, ad_link = $4, start_date = $5, end_date = $6, status = $7 WHERE id = $8 RETURNING *', 
+        [user_id, plan_id, ad_image_url, ad_link, start_date, end_date, status, req.params.id]
+      );
+      res.json({ success: true, ad: result.rows[0] });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update promo ad' });
+    }
+  });
+
+  router.delete('/promo-ads/:id', async (req, res) => {
+    try {
+      await pool.query('DELETE FROM promo_ads WHERE id = $1', [req.params.id]);
+      res.json({ success: true, message: 'Promo ad deleted' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete promo ad' });
     }
   });
 

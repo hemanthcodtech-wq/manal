@@ -14,6 +14,7 @@ const NAV = [
   { to: '/admin/realestate',            icon: HiOfficeBuilding, label: 'Real Estate'         },
   { to: '/admin/categories',            icon: HiViewGridAdd,    label: 'Categories'          },
   { to: '/admin/subscriptions',         icon: HiCurrencyRupee,  label: 'Subscriptions'       },
+  { to: '/admin/promotional-ads',       icon: HiDocumentText,   label: 'Promo Ads & Subs'    },
   { to: '/admin/subscription-reports',  icon: HiChartBar,       label: 'Reports'             },
 ];
 

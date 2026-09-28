@@ -44,6 +44,13 @@ export default function Footer() {
           <Link to="/jobs">Find Local Jobs</Link>
           <Link to="/contact">Partner with Us</Link>
         </div>
+
+        <div className="footer-col">
+          <h4>Legal</h4>
+          <Link to="/terms">Terms & Conditions</Link>
+          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/disclaimer">Disclaimer</Link>
+        </div>
       </div>
 
       <div className="footer-bottom">

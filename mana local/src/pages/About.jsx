@@ -70,6 +70,27 @@ export default function About() {
           </div>
         </section>
 
+        <section className="about-showcase reveal-on-scroll" style={{ margin: '60px 0' }}>
+          <h2 style={{ textAlign: 'center', marginBottom: '24px' }}>See Our Work</h2>
+          <div className="h-scroll" style={{ paddingBottom: '20px' }}>
+            {['video1.mp4', 'video2.mp4', 'video3.mp4'].map((vid, idx) => (
+              <div key={idx} style={{ 
+                flex: '0 0 280px', // Fixed width for side-by-side scrolling
+                borderRadius: '16px', overflow: 'hidden', background: '#0f172a', 
+                boxShadow: '0 10px 25px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0',
+                position: 'relative', paddingTop: '497px' /* 280 * 16/9 = 497px */
+              }}>
+                <video 
+                  src={`/videos/${vid}`}
+                  controls
+                  preload="metadata"
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="about-launch reveal-on-scroll" style={{ textAlign: 'center', margin: '60px 0', padding: '40px', background: '#f8fafc', borderRadius: '16px' }}>
           <h2>Current Status</h2>
           <p style={{ fontSize: '18px', color: '#64748b' }}>Our Local | మన లోకల్ is a new business venture currently in the development and launch stage.</p>

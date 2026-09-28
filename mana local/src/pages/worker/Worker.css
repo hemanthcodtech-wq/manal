@@ -406,6 +406,17 @@
 }
 
 /* ── Confirm Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
 .confirm-modal {
   background: #fff;
   border-radius: 16px;
@@ -413,6 +424,7 @@
   width: 100%;
   max-width: 320px;
   text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
 }
 .confirm-modal h3 { font-size: 18px; font-weight: 700; color: #1a1a1a; margin: 0 0 8px; }
 .confirm-modal p { font-size: 14px; color: #888; margin: 0 0 20px; }

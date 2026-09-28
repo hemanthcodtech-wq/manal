@@ -63,6 +63,7 @@ const initDB = async () => {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS rate_per_hour INT DEFAULT 0;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS rate_per_day INT DEFAULT 0;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS rate_per_week INT DEFAULT 0;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS available BOOLEAN DEFAULT false;
 
       CREATE TABLE IF NOT EXISTS categories (
         id SERIAL PRIMARY KEY,
@@ -70,12 +71,17 @@ const initDB = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      ALTER TABLE categories ADD COLUMN IF NOT EXISTS image VARCHAR(500);
+
       CREATE TABLE IF NOT EXISTS subcategories (
         id SERIAL PRIMARY KEY,
         category_id INT REFERENCES categories(id) ON DELETE CASCADE,
         name VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      ALTER TABLE subcategories ADD COLUMN IF NOT EXISTS image VARCHAR(500);
+      ALTER TABLE subcategories ADD COLUMN IF NOT EXISTS allow_showcase_images BOOLEAN DEFAULT false;
 
       CREATE TABLE IF NOT EXISTS real_estate (
         id SERIAL PRIMARY KEY,
@@ -150,6 +156,30 @@ const initDB = async () => {
       ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS subcategory_id INT REFERENCES subcategories(id) ON DELETE SET NULL;
       ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS amount DECIMAL(10,2);
       ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS days INT DEFAULT 30;
+
+      CREATE TABLE IF NOT EXISTS promo_plans (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        price DECIMAL(10,2) NOT NULL,
+        duration_days INT NOT NULL,
+        features TEXT,
+        status VARCHAR(50) DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS promo_ads (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        plan_id INTEGER REFERENCES promo_plans(id),
+        ad_image_url VARCHAR(500),
+        ad_link VARCHAR(500),
+        status VARCHAR(50) DEFAULT 'active',
+        start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        end_date TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      ALTER TABLE promo_plans ADD COLUMN IF NOT EXISTS ad_type VARCHAR(50) DEFAULT 'both';
     `);
     console.log('Database schema initialized');
   } catch (error) {
@@ -183,5 +213,98 @@ app.use('/api/payment', paymentRoutes(pool));
 // Mount worker routes
 const workerRoutes = require('./routes/worker');
 app.use('/api/worker', workerRoutes(pool));
+
+// Public routes for categories and subcategories
+app.get('/api/public/categories', async (req, res) => {
+  try {
+    const cacheKey = 'public_categories';
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      return res.json({ success: true, categories: JSON.parse(cachedData) });
+    }
+    const result = await pool.query('SELECT * FROM categories ORDER BY created_at DESC');
+    await redisClient.setEx(cacheKey, 3600, JSON.stringify(result.rows));
+    res.json({ success: true, categories: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+});
+
+app.get('/api/public/categories/:categoryId/subcategories', async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    const cacheKey = `public_subcategories_${categoryId}`;
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      return res.json({ success: true, subcategories: JSON.parse(cachedData) });
+    }
+    const result = await pool.query('SELECT * FROM subcategories WHERE category_id = $1 ORDER BY created_at DESC', [categoryId]);
+    await redisClient.setEx(cacheKey, 3600, JSON.stringify(result.rows));
+    res.json({ success: true, subcategories: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+});
+
+app.get('/api/public/subcategories/all', async (req, res) => {
+  try {
+    const cacheKey = 'public_all_subcategories';
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      return res.json({ success: true, subcategories: JSON.parse(cachedData) });
+    }
+    const result = await pool.query('SELECT * FROM subcategories ORDER BY created_at DESC');
+    await redisClient.setEx(cacheKey, 3600, JSON.stringify(result.rows));
+    res.json({ success: true, subcategories: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+});
+
+// Public routes for active ads
+app.get('/api/public/active-ads', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT a.*, p.ad_type FROM promo_ads a LEFT JOIN promo_plans p ON a.plan_id = p.id WHERE a.status = $1 AND a.ad_image_url IS NOT NULL ORDER BY a.created_at DESC',
+      ['active']
+    );
+    res.json({ success: true, ads: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+});
+
+// Public routes for workers
+app.get('/api/public/workers', async (req, res) => {
+  try {
+    const { subcategory_id } = req.query;
+    const cacheKey = subcategory_id ? `public_workers_sub_${subcategory_id}` : 'public_workers_all';
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      return res.json({ success: true, workers: JSON.parse(cachedData) });
+    }
+
+    let query = 'SELECT * FROM users WHERE role = $1 AND status = $2';
+    const params = ['worker', 'active'];
+    
+    if (subcategory_id) {
+      query += ' AND subcategory_id = $3';
+      params.push(subcategory_id);
+    }
+    
+    query += ' ORDER BY rating DESC';
+    
+    const result = await pool.query(query, params);
+    await redisClient.setEx(cacheKey, 600, JSON.stringify(result.rows)); // 10 minutes cache
+    res.json({ success: true, workers: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false });
+  }
+});
 
 app.listen(port, () => console.log('Server running on port ' + port));

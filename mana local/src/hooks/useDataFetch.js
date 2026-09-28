@@ -1,26 +1,42 @@
 import { useState, useEffect } from 'react';
 
-export function useDataFetch(initialData, delay = 1500) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+const cache = new Map();
+
+export function useDataFetch(url, cacheKey) {
+  const key = cacheKey || url;
+  
+  // Initialize with cached data if available
+  const [data, setData] = useState(() => cache.get(key) || null);
+  // Only show loading if we don't have cached data
+  const [loading, setLoading] = useState(!cache.has(key));
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
 
-    // Simulate network request
-    const timer = setTimeout(() => {
-      if (isMounted) {
-        setData(initialData);
-        setLoading(false);
+    const fetchData = async () => {
+      try {
+        const res = await fetch(url);
+        const json = await res.json();
+        if (isMounted) {
+          setData(json);
+          setLoading(false);
+          cache.set(key, json); // Save to cache
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err);
+          setLoading(false);
+        }
       }
-    }, delay);
+    };
+
+    fetchData();
 
     return () => {
       isMounted = false;
-      clearTimeout(timer);
     };
-  }, [initialData, delay]);
+  }, [url, key]);
 
-  return { data, loading };
+  return { data, loading, error };
 }
