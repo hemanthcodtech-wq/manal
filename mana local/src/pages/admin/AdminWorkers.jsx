@@ -113,6 +113,7 @@ export default function AdminWorkers() {
                     <span>Rating</span>
                   </div>
                   <div><strong>{w.jobs_done || 0}</strong><span>Jobs Done</span></div>
+                  <div><strong>{w.profile_views || 0}</strong><span>Views</span></div>
                 </div>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: '#f8fafc', borderRadius: '8px', marginTop: '12px', border: '1px solid #e2e8f0' }}>
@@ -181,6 +182,10 @@ export default function AdminWorkers() {
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
                 <span style={{ color: '#64748b' }}>Experience</span>
                 <span style={{ fontWeight: 600, color: '#0f172a' }}>{selectedWorker.experience || 'Not Provided'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
+                <span style={{ color: '#64748b' }}>Profile Views</span>
+                <span style={{ fontWeight: 600, color: '#0f172a' }}>{selectedWorker.profile_views || 0}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
                 <span style={{ color: '#64748b' }}>Location</span>

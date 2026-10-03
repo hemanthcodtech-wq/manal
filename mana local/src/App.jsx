@@ -15,8 +15,11 @@ import CategorySubcategories from './pages/CategorySubcategories';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Workers from './pages/Workers';
+import WorkerDetails from './pages/WorkerDetails';
 import Jobs from './pages/Jobs';
+import JobDetails from './pages/JobDetails';
 import RealEstate from './pages/RealEstate';
+import RealEstateDetails from './pages/RealEstateDetails';
 
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -58,13 +61,15 @@ function ScrollToTop() {
 function Layout() {
   const { pathname } = useLocation();
   const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password';
+  const isFullScreenPage = pathname.startsWith('/professional/') || pathname.startsWith('/job/') || pathname.startsWith('/property/');
   const isAdminOrWorker = pathname.startsWith('/admin') || pathname.startsWith('/worker');
+  const hideGlobalNavs = isAuthPage || isFullScreenPage;
 
   return (
     <>
       <Splash />
-      {(!isAdminOrWorker && !isAuthPage) && <Navbar />}
-      <main className={`app-main ${isAdminOrWorker ? 'admin-worker' : ''} ${isAuthPage ? 'auth-main' : ''}`}>
+      {(!isAdminOrWorker && !hideGlobalNavs) && <Navbar />}
+      <main className={`app-main ${isAdminOrWorker ? 'admin-worker' : ''} ${isAuthPage ? 'auth-main' : ''} ${isFullScreenPage ? 'full-screen-main' : ''}`}>
         <Routes>
           {/* Public */}
           <Route path="/" element={<Home />} />
@@ -73,8 +78,11 @@ function Layout() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/workers" element={<Workers />} />
+          <Route path="/professional/:id" element={<WorkerDetails />} />
           <Route path="/jobs" element={<Jobs />} />
+          <Route path="/job/:id" element={<JobDetails />} />
           <Route path="/realestate" element={<RealEstate />} />
+          <Route path="/property/:id" element={<RealEstateDetails />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -117,7 +125,7 @@ function Layout() {
           </Route>
         </Routes>
       </main>
-      {(!isAdminOrWorker && !isAuthPage) && <BottomNav />}
+      {(!isAdminOrWorker && !hideGlobalNavs) && <BottomNav />}
     </>
   );
 }

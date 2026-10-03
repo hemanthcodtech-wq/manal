@@ -170,6 +170,47 @@ export default function WorkerProfile() {
             </div>
           </div>
           
+          <div className="worker-section" style={{ marginTop: '24px' }}>
+            <h2>Cover Image</h2>
+            <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '16px' }}>
+              Upload a beautiful cover image to make your profile stand out.
+            </p>
+            <div style={{ position: 'relative', width: '100%', height: '200px', background: '#e2e8f0', borderRadius: '12px', overflow: 'hidden', marginBottom: '16px' }}>
+              {user.cover_image ? (
+                <img src={user.cover_image} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                  No cover image set
+                </div>
+              )}
+              <label style={{ position: 'absolute', bottom: '16px', right: '16px', background: 'rgba(255,255,255,0.9)', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  setIsUploading(true);
+                  const fd = new FormData();
+                  fd.append('avatar', file); // reusing avatar upload route for simplicity
+                  try {
+                    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/upload-avatar`, { method: 'POST', body: fd });
+                    const d = await res.json();
+                    if (d.success) {
+                      const profRes = await fetch(`${import.meta.env.VITE_API_URL}/api/worker/${user.id}/profile`, {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ cover_image: d.url })
+                      });
+                      const profD = await profRes.json();
+                      if (profD.success) {
+                        useAuthStore.getState().setUser({ ...user, cover_image: d.url });
+                      }
+                    }
+                  } catch(e) {}
+                  setIsUploading(false);
+                }} disabled={isUploading} />
+                {isUploading ? 'Uploading...' : 'Change Cover Image'}
+              </label>
+            </div>
+          </div>
+
           {user.allow_showcase_images && (
             <div className="worker-section" style={{ marginTop: '24px' }}>
               <h2>Portfolio & Showcase Images</h2>

@@ -64,6 +64,12 @@ const initDB = async () => {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS rate_per_day INT DEFAULT 0;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS rate_per_week INT DEFAULT 0;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS available BOOLEAN DEFAULT false;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS description TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS available_from VARCHAR(50);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS available_to VARCHAR(50);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS available_days VARCHAR(255);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS cover_image VARCHAR(500);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_views INT DEFAULT 0;
 
       CREATE TABLE IF NOT EXISTS categories (
         id SERIAL PRIMARY KEY,
@@ -110,8 +116,17 @@ const initDB = async () => {
         rate_per_hour INT DEFAULT 0,
         rate_per_day INT DEFAULT 0,
         rate_per_week INT DEFAULT 0,
+        description TEXT,
+        available_from VARCHAR(50),
+        available_to VARCHAR(50),
+        available_days VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      ALTER TABLE worker_services ADD COLUMN IF NOT EXISTS description TEXT;
+      ALTER TABLE worker_services ADD COLUMN IF NOT EXISTS available_from VARCHAR(50);
+      ALTER TABLE worker_services ADD COLUMN IF NOT EXISTS available_to VARCHAR(50);
+      ALTER TABLE worker_services ADD COLUMN IF NOT EXISTS available_days VARCHAR(255);
 
       CREATE TABLE IF NOT EXISTS jobs (
         id SERIAL PRIMARY KEY,

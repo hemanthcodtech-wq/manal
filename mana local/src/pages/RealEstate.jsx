@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { realestate } from '../data/realestate';
 import { HiLocationMarker, HiPhone, HiSearch, HiOfficeBuilding, HiMap } from 'react-icons/hi';
 import { useScrollReveal } from '../hooks/useScrollReveal';
+import { useNavigate } from 'react-router-dom';
 import './RealEstate.css';
 import Footer from '../components/Footer';
 
 export default function RealEstate() {
   const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useScrollReveal([searchQuery]);
+  const navigate = useNavigate();
 
   const filteredProperties = realestate.filter(property => {
     const lowerQuery = searchQuery.toLowerCase();
@@ -75,12 +77,14 @@ export default function RealEstate() {
                   </div>
                 </div>
 
-                <p className="re-desc">{property.description}</p>
-
-                <div className="re-card-footer">
-                  <a href={`tel:${property.contact}`} className="re-contact-btn">
-                    <HiPhone /> Contact Seller
-                  </a>
+                <div className="re-card-footer" style={{ borderTop: 'none', padding: '0', marginTop: '16px' }}>
+                  <button 
+                    onClick={() => navigate(`/property/${property.id}`, { state: { property } })}
+                    className="wd-premium-btn"
+                    style={{ width: '100%', background: 'linear-gradient(135deg, #0284c7, #0369a1)', color: '#fff', border: 'none', padding: '14px', borderRadius: '12px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s', boxShadow: '0 4px 12px rgba(2,132,199,0.2)' }}
+                  >
+                    View Details
+                  </button>
                 </div>
               </div>
             </div>

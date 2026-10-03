@@ -3,7 +3,7 @@
   padding-bottom: 72px;
   padding-top: 100px;
 }
-.app-main.admin-worker, .app-main.auth-main {
+.app-main.admin-worker, .app-main.auth-main, .app-main.full-screen-main {
   padding: 0;
 }
 @media (min-width: 768px) {

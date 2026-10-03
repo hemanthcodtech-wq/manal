@@ -10,7 +10,8 @@ module.exports = (pool) => {
       const result = await pool.query(`
         SELECT u.id, u.name, u.email, u.phone, u.role, u.status, u.available, u.rating, u.avatar, u.created_at, 
                u.aadhar_no, u.experience, u.location, u.category_id, u.subcategory_id, u.plan_id, u.payment_id, u.jobs_done,
-               u.rate_per_hour, u.rate_per_day, u.rate_per_week,
+               u.rate_per_hour, u.rate_per_day, u.rate_per_week, u.description, u.available_from, u.available_to, u.available_days,
+               u.cover_image, u.profile_views,
                c.name as category_name, sc.name as subcategory_name, sc.allow_showcase_images
         FROM users u
         LEFT JOIN categories c ON u.category_id = c.id
@@ -18,6 +19,9 @@ module.exports = (pool) => {
         WHERE u.id = $1
       `, [id]);
       if (result.rows.length === 0) return res.status(404).json({ error: 'Worker not found' });
+      
+      // Increment views
+      await pool.query('UPDATE users SET profile_views = COALESCE(profile_views, 0) + 1 WHERE id = $1', [id]);
       
       const servicesRes = await pool.query(`
         SELECT ws.*, c.name as category_name, sc.name as subcategory_name 
@@ -42,10 +46,10 @@ module.exports = (pool) => {
   router.post('/:id/rates', async (req, res) => {
     try {
       const { id } = req.params;
-      const { rate_per_hour, rate_per_day, rate_per_week } = req.body;
+      const { rate_per_hour, rate_per_day, rate_per_week, description, available_from, available_to, available_days } = req.body;
       const result = await pool.query(
-        'UPDATE users SET rate_per_hour = $1, rate_per_day = $2, rate_per_week = $3 WHERE id = $4 RETURNING *',
-        [rate_per_hour || 0, rate_per_day || 0, rate_per_week || 0, id]
+        'UPDATE users SET rate_per_hour = $1, rate_per_day = $2, rate_per_week = $3, description = $4, available_from = $5, available_to = $6, available_days = $7 WHERE id = $8 RETURNING *',
+        [rate_per_hour || 0, rate_per_day || 0, rate_per_week || 0, description || '', available_from || '', available_to || '', available_days || '', id]
       );
       if (result.rows.length === 0) return res.status(404).json({ error: 'Worker not found' });
       res.json({ success: true, profile: result.rows[0] });
@@ -59,14 +63,20 @@ module.exports = (pool) => {
   router.put('/:id/profile', async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, phone, avatar } = req.body;
-      // Get existing avatar if not provided in update
-      const existingRes = await pool.query('SELECT avatar FROM users WHERE id = $1', [id]);
-      const currentAvatar = existingRes.rows.length > 0 ? existingRes.rows[0].avatar : null;
+      const { name, phone, avatar, cover_image } = req.body;
+      // Get existing details if not provided in update
+      const existingRes = await pool.query('SELECT name, phone, avatar, cover_image FROM users WHERE id = $1', [id]);
+      const current = existingRes.rows.length > 0 ? existingRes.rows[0] : {};
       
       const result = await pool.query(
-        'UPDATE users SET name = $1, phone = $2, avatar = $3 WHERE id = $4 RETURNING id, name, email, phone, role, status, rating, avatar',
-        [name, phone, avatar !== undefined ? avatar : currentAvatar, id]
+        'UPDATE users SET name = $1, phone = $2, avatar = $3, cover_image = $4 WHERE id = $5 RETURNING id, name, email, phone, role, status, rating, avatar, cover_image',
+        [
+          name !== undefined ? name : current.name, 
+          phone !== undefined ? phone : current.phone, 
+          avatar !== undefined ? avatar : current.avatar, 
+          cover_image !== undefined ? cover_image : current.cover_image, 
+          id
+        ]
       );
       res.json({ success: true, profile: result.rows[0] });
     } catch (error) {
@@ -126,11 +136,11 @@ module.exports = (pool) => {
   router.post('/:id/services', async (req, res) => {
     try {
       const { id } = req.params;
-      const { category_id, subcategory_id, rate_per_hour, rate_per_day, rate_per_week } = req.body;
+      const { category_id, subcategory_id, rate_per_hour, rate_per_day, rate_per_week, description, available_from, available_to, available_days } = req.body;
       const result = await pool.query(
-        `INSERT INTO worker_services (worker_id, category_id, subcategory_id, rate_per_hour, rate_per_day, rate_per_week)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [id, category_id, subcategory_id, rate_per_hour || 0, rate_per_day || 0, rate_per_week || 0]
+        `INSERT INTO worker_services (worker_id, category_id, subcategory_id, rate_per_hour, rate_per_day, rate_per_week, description, available_from, available_to, available_days)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+        [id, category_id, subcategory_id, rate_per_hour || 0, rate_per_day || 0, rate_per_week || 0, description || '', available_from || '', available_to || '', available_days || '']
       );
       res.json({ success: true, service: result.rows[0] });
     } catch (error) {

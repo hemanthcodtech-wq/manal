@@ -13,14 +13,18 @@ export default function WorkerServices() {
   const [rates, setRates] = useState({
     rate_per_hour: user?.rate_per_hour || '',
     rate_per_day: user?.rate_per_day || '',
-    rate_per_week: user?.rate_per_week || ''
+    rate_per_week: user?.rate_per_week || '',
+    description: user?.description || '',
+    available_from: user?.available_from || '',
+    available_to: user?.available_to || '',
+    available_days: user?.available_days || ''
   });
 
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
   
   const [isAddingExtra, setIsAddingExtra] = useState(false);
-  const [extraForm, setExtraForm] = useState({ category_id: '', subcategory_id: '', rate_per_hour: '', rate_per_day: '', rate_per_week: '' });
+  const [extraForm, setExtraForm] = useState({ category_id: '', subcategory_id: '', rate_per_hour: '', rate_per_day: '', rate_per_week: '', description: '', available_from: '', available_to: '', available_days: '' });
   
   const [loadingPrimary, setLoadingPrimary] = useState(false);
   const [loadingExtra, setLoadingExtra] = useState(false);
@@ -68,7 +72,11 @@ export default function WorkerServices() {
         body: JSON.stringify({
           rate_per_hour: Number(rates.rate_per_hour),
           rate_per_day: Number(rates.rate_per_day),
-          rate_per_week: Number(rates.rate_per_week)
+          rate_per_week: Number(rates.rate_per_week),
+          description: rates.description,
+          available_from: rates.available_from,
+          available_to: rates.available_to,
+          available_days: rates.available_days
         })
       });
       const data = await res.json();
@@ -107,7 +115,7 @@ export default function WorkerServices() {
         const profData = await profRes.json();
         if (profData.success) setUser({ ...user, ...profData.profile });
         setIsAddingExtra(false);
-        setExtraForm({ category_id: '', subcategory_id: '', rate_per_hour: '', rate_per_day: '', rate_per_week: '' });
+        setExtraForm({ category_id: '', subcategory_id: '', rate_per_hour: '', rate_per_day: '', rate_per_week: '', description: '', available_from: '', available_to: '', available_days: '' });
         toast.success('Additional service added successfully!');
       } else {
         toast.error(data.error || 'Failed to add service');
@@ -203,6 +211,13 @@ export default function WorkerServices() {
                 <div className="pi-val">₹{user.rate_per_week || 0}</div>
               </div>
             </div>
+            {(user.description || user.available_from || user.available_days) && (
+              <div style={{ marginTop: 24, padding: 16, background: '#f8fafc', borderRadius: 8 }}>
+                {user.description && <div style={{ marginBottom: 12 }}><strong>Description:</strong> <p style={{ margin: '4px 0 0 0', color: '#475569' }}>{user.description}</p></div>}
+                {(user.available_from || user.available_to) && <div><strong>Available Time:</strong> {user.available_from || 'N/A'} to {user.available_to || 'N/A'}</div>}
+                {user.available_days && <div style={{ marginTop: 4 }}><strong>Available Days:</strong> {user.available_days}</div>}
+              </div>
+            )}
           </div>
         ) : (
           <div className="admin-card" style={{ marginBottom: 32 }}>
@@ -235,6 +250,26 @@ export default function WorkerServices() {
                     <HiCurrencyRupee style={{ position: 'absolute', top: 16, left: 16, color: '#94a3b8' }} />
                     <input type="number" className="form-input" placeholder="e.g. 10000" value={rates.rate_per_week} onChange={e => setRates({...rates, rate_per_week: e.target.value})} style={{ paddingLeft: 44, width: '100%', boxSizing: 'border-box' }} required />
                   </div>
+                </div>
+              </div>
+
+              <div className="form-group" style={{ marginTop: 16 }}>
+                <label>Description (Optional)</label>
+                <textarea className="form-input" placeholder="Describe your service, experience, etc." value={rates.description} onChange={e => setRates({...rates, description: e.target.value})} style={{ minHeight: 80, width: '100%', boxSizing: 'border-box' }}></textarea>
+              </div>
+
+              <div className="form-row" style={{ marginTop: 16 }}>
+                <div className="form-group">
+                  <label>Available From Time</label>
+                  <input type="time" className="form-input" value={rates.available_from} onChange={e => setRates({...rates, available_from: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Available To Time</label>
+                  <input type="time" className="form-input" value={rates.available_to} onChange={e => setRates({...rates, available_to: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Available Days</label>
+                  <input type="text" className="form-input" placeholder="e.g. Mon-Fri" value={rates.available_days} onChange={e => setRates({...rates, available_days: e.target.value})} />
                 </div>
               </div>
 
@@ -298,6 +333,26 @@ export default function WorkerServices() {
                 </div>
               </div>
 
+              <div className="form-group" style={{ marginTop: 16 }}>
+                <label>Description (Optional)</label>
+                <textarea className="form-input" placeholder="Describe this additional service..." value={extraForm.description} onChange={e => setExtraForm({...extraForm, description: e.target.value})} style={{ minHeight: 80, width: '100%', boxSizing: 'border-box' }}></textarea>
+              </div>
+
+              <div className="form-row" style={{ marginTop: 16 }}>
+                <div className="form-group">
+                  <label>Available From Time</label>
+                  <input type="time" className="form-input" value={extraForm.available_from} onChange={e => setExtraForm({...extraForm, available_from: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Available To Time</label>
+                  <input type="time" className="form-input" value={extraForm.available_to} onChange={e => setExtraForm({...extraForm, available_to: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Available Days</label>
+                  <input type="text" className="form-input" placeholder="e.g. Weekends" value={extraForm.available_days} onChange={e => setExtraForm({...extraForm, available_days: e.target.value})} />
+                </div>
+              </div>
+
               <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
                 <button type="button" className="admin-btn-primary" style={{ background: '#e2e8f0', color: '#475569', flex: 1 }} onClick={() => setIsAddingExtra(false)} disabled={loadingExtra}>Cancel</button>
                 <button type="submit" className="submit-btn" style={{ margin: 0, flex: 2 }} disabled={loadingExtra}>
@@ -324,6 +379,15 @@ export default function WorkerServices() {
                       <span>Daily: ₹{srv.rate_per_day}</span>
                       <span>Weekly: ₹{srv.rate_per_week}</span>
                     </div>
+                    {(srv.description || srv.available_from || srv.available_days) && (
+                      <div style={{ marginTop: 8, fontSize: '13px', color: '#64748b' }}>
+                        {srv.description && <div style={{ marginBottom: 4 }}><strong>Desc:</strong> {srv.description}</div>}
+                        <div style={{ display: 'flex', gap: 12 }}>
+                          {(srv.available_from || srv.available_to) && <span><strong>Time:</strong> {srv.available_from || '-'} to {srv.available_to || '-'}</span>}
+                          {srv.available_days && <span><strong>Days:</strong> {srv.available_days}</span>}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <button onClick={() => handleDeleteService(srv.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Delete Service">
                     <HiTrash size={20} />

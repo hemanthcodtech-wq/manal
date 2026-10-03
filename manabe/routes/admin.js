@@ -114,6 +114,7 @@ module.exports = (pool, redisClient) => {
       const result = await pool.query(`
         SELECT u.id, u.name, u.email, u.phone, u.status, u.rating, u.avatar, u.created_at, 
                u.aadhar_no, u.experience, u.location, u.category_id, u.subcategory_id, u.plan_id, u.payment_id, u.jobs_done,
+               u.profile_views,
                c.name as category_name, sc.name as subcategory_name,
                s.plan as plan_name, s.days as plan_days, s.amount as plan_amount
         FROM users u

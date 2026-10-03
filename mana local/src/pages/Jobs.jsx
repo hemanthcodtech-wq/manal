@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { HiLocationMarker, HiMap, HiClock, HiCurrencyRupee, HiBriefcase, HiSearch, HiPhone, HiChip, HiLightningBolt, HiDocumentText, HiOfficeBuilding, HiAcademicCap, HiMail, HiExclamationCircle } from 'react-icons/hi';
 import { useScrollReveal } from '../hooks/useScrollReveal';
+import { useNavigate } from 'react-router-dom';
 import './Jobs.css';
+
+let cachedJobsData = null;
 
 export default function Jobs() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  
+  const isCached = cachedJobsData !== null;
+  const [jobs, setJobs] = useState(isCached ? cachedJobsData : []);
+  const [loading, setLoading] = useState(!isCached);
   const containerRef = useScrollReveal([searchQuery, jobs]);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (isCached) return;
+
     const fetchJobs = async () => {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/jobs`);
@@ -43,6 +51,7 @@ export default function Jobs() {
             };
           });
           setJobs(formatted);
+          cachedJobsData = formatted;
         }
       } catch (err) {
         console.error('Error fetching jobs:', err);
@@ -123,55 +132,16 @@ export default function Jobs() {
                 <HiClock className="jc-icon" />
                 <span>Exp: {job.experience}</span>
               </div>
-              <div className="jc-meta-item">
-                <HiAcademicCap className="jc-icon" />
-                <span>Pass Year: {job.yearOfPassing}</span>
-              </div>
-              <div className="jc-meta-item" style={{ flex: '1 1 100%' }}>
-                <HiDocumentText className="jc-icon" />
-                <span><strong>Depts:</strong> {job.departments}</span>
-              </div>
-              <div className="jc-meta-item" style={{ flex: '1 1 100%' }}>
-                <HiLightningBolt className="jc-icon" />
-                <span><strong>Skills:</strong> {job.skills}</span>
-              </div>
-              {job.phone && job.phone !== 'Not provided' && (
-                <div className="jc-meta-item" style={{ flex: '1 1 100%' }}>
-                  <HiPhone className="jc-icon" />
-                  <span><strong>HR Phone:</strong> <a href={`tel:${job.phone}`}>{job.phone}</a></span>
-                </div>
-              )}
-              {job.email && (
-                <div className="jc-meta-item" style={{ flex: '1 1 100%' }}>
-                  <HiMail className="jc-icon" />
-                  <span><strong>HR Email:</strong> <a href={`mailto:${job.email}`}>{job.email}</a></span>
-                </div>
-              )}
             </div>
 
-            <div className="jc-footer">
-              {job.isExpired ? (
-                <div style={{color: '#ef4444', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', padding: '12px 0'}}>
-                  <HiExclamationCircle /> This position is no longer accepting applications.
-                </div>
-              ) : (
-                <>
-                  {job.applyLink ? (
-                    <a href={job.applyLink} target="_blank" rel="noreferrer" className="apply-btn">
-                      Apply Link
-                    </a>
-                  ) : (
-                    <a href={`tel:${job.phone}`} className="apply-btn">
-                      <HiPhone /> Apply Now
-                    </a>
-                  )}
-                  {job.pdf && (
-                    <a href={job.pdf} target="_blank" rel="noreferrer" className="apply-btn" style={{background: '#fff', color: '#3b82f6', border: '1px solid #3b82f6'}}>
-                      <HiDocumentText /> View JD (PDF)
-                    </a>
-                  )}
-                </>
-              )}
+            <div className="jc-footer" style={{ padding: '0 24px 24px', background: 'transparent' }}>
+              <button 
+                onClick={() => navigate(`/job/${job.id}`, { state: { job } })}
+                className="wd-premium-btn"
+                style={{ width: '100%', background: 'linear-gradient(135deg, #0284c7, #0369a1)', color: '#fff', border: 'none', padding: '14px', borderRadius: '12px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s', boxShadow: '0 4px 12px rgba(2,132,199,0.2)' }}
+              >
+                View Details
+              </button>
             </div>
           </div>
         ))}
