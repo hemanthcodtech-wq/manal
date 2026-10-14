@@ -7,7 +7,7 @@ export default function AdminRealEstate() {
   const [showModal, setShowModal] = useState(false);
   const defaultForm = { 
     title: '', description: '', price: '', property_type: 'Sale', location: '', 
-    bedrooms: '', bathrooms: '', area_sqft: '', contact_phone: '', contact_email: '', status: 'available',
+    bedrooms: '', bathrooms: '', area_sqft: '', facing: '', contact_phone: '', contact_email: '', status: 'available',
     images: [], videos: []
   };
   const [formData, setFormData] = useState(defaultForm);
@@ -45,6 +45,7 @@ export default function AdminRealEstate() {
       title: property.title || '', description: property.description || '', price: property.price || '', 
       property_type: property.property_type || 'Sale', location: property.location || '', 
       bedrooms: property.bedrooms || '', bathrooms: property.bathrooms || '', area_sqft: property.area_sqft || '', 
+      facing: property.facing || '',
       contact_phone: property.contact_phone || '', contact_email: property.contact_email || '', 
       status: property.status || 'available',
       images: Array.isArray(property.images) ? property.images : (typeof property.images === 'string' ? JSON.parse(property.images || '[]') : []),
@@ -149,6 +150,7 @@ export default function AdminRealEstate() {
                 <tr>
                   <th><Skeleton type="text" style={{ width: '40px' }} /></th>
                   <th><Skeleton type="text" style={{ width: '100px' }} /></th>
+                  <th><Skeleton type="text" style={{ width: '60px' }} /></th>
                   <th><Skeleton type="text" style={{ width: '80px' }} /></th>
                   <th><Skeleton type="text" style={{ width: '60px' }} /></th>
                   <th><Skeleton type="text" style={{ width: '50px' }} /></th>
@@ -163,6 +165,7 @@ export default function AdminRealEstate() {
                       <Skeleton type="title" style={{ width: '120px', marginBottom: '4px' }} />
                       <Skeleton type="text" style={{ width: '150px' }} />
                     </td>
+                    <td><Skeleton type="text" style={{ width: '60px' }} /></td>
                     <td><Skeleton type="text" style={{ width: '100px' }} /></td>
                     <td><Skeleton type="text" style={{ width: '80px' }} /></td>
                     <td><Skeleton type="text" style={{ width: '60px', height: '24px', borderRadius: '12px' }} /></td>
@@ -187,6 +190,7 @@ export default function AdminRealEstate() {
                 <tr>
                   <th>ID</th>
                   <th>Title / Type</th>
+                  <th>Facing</th>
                   <th>Location</th>
                   <th>Price (₹)</th>
                   <th>Status</th>
@@ -200,6 +204,19 @@ export default function AdminRealEstate() {
                     <td>
                       <strong>{p.title}</strong>
                       <div style={{fontSize: '12px', color: '#64748b', marginTop: '4px'}}>{p.property_type} • {p.bedrooms} Beds • {p.bathrooms} Baths</div>
+                    </td>
+                    <td>
+                      <span style={{ 
+                        background: '#f1f5f9', 
+                        color: '#0369a1', 
+                        fontWeight: 600, 
+                        fontSize: '12px', 
+                        padding: '4px 10px', 
+                        borderRadius: '12px',
+                        display: 'inline-block'
+                      }}>
+                        {p.facing ? `${p.facing} Face` : '—'}
+                      </span>
                     </td>
                     <td>{p.location || '—'}</td>
                     <td>{p.price ? `₹${parseFloat(p.price).toLocaleString()}` : '—'}</td>
@@ -269,6 +286,21 @@ export default function AdminRealEstate() {
                   <label style={{display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600}}>Area (Sq Ft)</label>
                   <input type="number" style={{width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0'}} 
                     value={formData.area_sqft} onChange={e => setFormData({...formData, area_sqft: e.target.value})} disabled={isSubmitting} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600}}>Facing</label>
+                  <select style={{width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0'}} 
+                    value={formData.facing} onChange={e => setFormData({...formData, facing: e.target.value})} disabled={isSubmitting}>
+                    <option value="">Select Facing...</option>
+                    <option value="East">East Face</option>
+                    <option value="West">West Face</option>
+                    <option value="North">North Face</option>
+                    <option value="South">South Face</option>
+                    <option value="North-East">North-East Face</option>
+                    <option value="North-West">North-West Face</option>
+                    <option value="South-East">South-East Face</option>
+                    <option value="South-West">South-West Face</option>
+                  </select>
                 </div>
               </div>
 

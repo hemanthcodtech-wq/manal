@@ -18,6 +18,7 @@ import {
 import { FaTractor, FaRoad, FaSpa, FaLeaf, FaWhatsapp } from 'react-icons/fa';
 import { GiCrane, GiPickelhaube } from 'react-icons/gi';
 import { TbTruckDelivery } from 'react-icons/tb';
+import { calculateDistanceKm, formatDistance, getWorkerCoordinates, getCustomerLocation } from '../utils/geoDistance';
 import './Home.css';
 
 const MANA_LOCAL_BANNER = {
@@ -72,14 +73,70 @@ export default function Home() {
   
   const [activeAds, setActiveAds] = useState([]);
   const [showVideoAd, setShowVideoAd] = useState(false);
+  const [showcaseVideos, setShowcaseVideos] = useState([]);
+  const [nearbyWorkers, setNearbyWorkers] = useState([]);
+  const [userLocation, setUserLocation] = useState(null);
+  const [workersLoading, setWorkersLoading] = useState(true);
   const [dbCategories, setDbCategories] = useState([]);
   const [dbSubcategories, setDbSubcategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
+  // Request customer's live GPS location with shared cache
+  useEffect(() => {
+    getCustomerLocation((loc) => {
+      setUserLocation(loc);
+    });
+  }, []);
+
   useEffect(() => {
     fetchAds();
     fetchCategoriesData();
-  }, []);
+    fetchShowcaseVideos();
+    if (userLocation) {
+      fetchNearbyWorkers();
+    }
+  }, [userLocation]);
+
+  const fetchNearbyWorkers = async () => {
+    try {
+      setWorkersLoading(true);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/public/workers`);
+      const data = await res.json();
+      if (data.success && data.workers) {
+        const mapped = data.workers.map((w) => {
+          const coords = getWorkerCoordinates(w, userLocation);
+          const distKm = userLocation ? calculateDistanceKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng) : null;
+          const displayDist = formatDistance(distKm);
+
+          return {
+            ...w,
+            latitude: coords.lat,
+            longitude: coords.lng,
+            displayDistance: displayDist,
+            numDist: distKm != null ? distKm : 999999
+          };
+        }).sort((a, b) => a.numDist - b.numDist); // Sort nearest worker first!
+
+        setNearbyWorkers(mapped.slice(0, 10)); // Take top 10 closest
+      }
+    } catch (err) {
+      console.error('Error fetching nearby workers:', err);
+    } finally {
+      setWorkersLoading(false);
+    }
+  };
+
+  const fetchShowcaseVideos = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/public/showcase-videos`);
+      const data = await res.json();
+      if (data.success && data.videos) {
+        setShowcaseVideos(data.videos);
+      }
+    } catch (err) {
+      console.error('Error fetching showcase videos for home:', err);
+    }
+  };
 
   const fetchCategoriesData = async () => {
     try {
@@ -251,6 +308,140 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Nearby Verified Professionals ── */}
+      <section className="section nearby-workers-section reveal-on-scroll" style={{ padding: '40px 0 20px', background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)' }}>
+        <div className="section-inner">
+          <div className="section-header" style={{ marginBottom: '24px' }}>
+            <div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#e0f2fe', color: '#0369a1', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, marginBottom: '8px' }}>
+                <HiLocationMarker style={{ color: '#0284c7' }} /> NEARBY PROFESSIONALS
+              </div>
+              <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', margin: '4px 0 6px' }}>
+                Verified Workers Near You
+              </h2>
+              <p className="section-sub" style={{ margin: 0 }}>
+                Instant connect with background-checked local specialists
+              </p>
+            </div>
+            <button className="see-all-btn" onClick={() => navigate('/browse')}>
+              Explore All <HiChevronRight style={{ width: 14, height: 14, verticalAlign: 'middle' }} />
+            </button>
+          </div>
+
+          <div className="h-scroll" style={{ paddingBottom: '16px', gap: '18px' }}>
+            {workersLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} style={{ flex: '0 0 280px', background: '#fff', borderRadius: '20px', padding: '20px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
+                    <Skeleton type="avatar" style={{ width: '50px', height: '50px' }} />
+                    <div style={{ flex: 1 }}>
+                      <Skeleton type="title" style={{ width: '70%', marginBottom: '6px' }} />
+                      <Skeleton type="text" style={{ width: '40%' }} />
+                    </div>
+                  </div>
+                  <Skeleton type="card" style={{ height: '40px' }} />
+                </div>
+              ))
+            ) : nearbyWorkers.length > 0 ? (
+              nearbyWorkers.map((w) => {
+                const subName = dbSubcategories.find(s => s.id === w.subcategory_id)?.name || w.category_name || 'Home Specialist';
+                const hourlyRate = w.rate_per_hour || 500;
+                const avatarImg = w.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(w.name || 'W')}&background=random`;
+
+                return (
+                  <div 
+                    key={w.id}
+                    onClick={() => navigate(`/professional/${w.id}`)}
+                    style={{
+                      flex: '0 0 280px',
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '20px',
+                      padding: '20px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: '0 4px 18px rgba(0,0,0,0.04)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      position: 'relative'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-6px)';
+                      e.currentTarget.style.borderColor = '#0284c7';
+                      e.currentTarget.style.boxShadow = '0 16px 30px rgba(2, 132, 199, 0.12)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.borderColor = '#e2e8f0';
+                      e.currentTarget.style.boxShadow = '0 4px 18px rgba(0,0,0,0.04)';
+                    }}
+                  >
+                    <div>
+                      {/* Top Row: Avatar & Status */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
+                        <div style={{ position: 'relative' }}>
+                          <img 
+                            src={avatarImg} 
+                            alt={w.name} 
+                            style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #e2e8f0' }} 
+                          />
+                          <HiBadgeCheck style={{ position: 'absolute', bottom: -2, right: -2, color: '#0284c7', background: '#fff', borderRadius: '50%', fontSize: '18px' }} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h4 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {w.name}
+                          </h4>
+                          <span style={{ display: 'inline-block', background: '#f1f5f9', color: '#0369a1', fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+                            {subName}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Distance and Rating Pills */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#eff6ff', color: '#0284c7', fontSize: '12px', fontWeight: 700, padding: '4px 10px', borderRadius: '14px' }}>
+                          <HiLocationMarker /> {w.displayDistance}
+                        </span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#fef3c7', color: '#b45309', fontSize: '12px', fontWeight: 700, padding: '4px 8px', borderRadius: '14px' }}>
+                          <HiStar style={{ color: '#f59e0b' }} /> {w.rating || '5.0'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Bottom: Pricing & Action */}
+                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Starting</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>₹{hourlyRate}/hr</div>
+                      </div>
+                      <button 
+                        style={{
+                          background: 'linear-gradient(135deg, #0284c7, #0369a1)',
+                          color: '#fff',
+                          border: 'none',
+                          padding: '8px 14px',
+                          borderRadius: '10px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        View Profile
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div style={{ padding: '24px', color: '#64748b', fontSize: '14px' }}>
+                No professionals found in your immediate radius.
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* ── Popular Services & Workers ── */}
       <section className="section services-section reveal-on-scroll">
         <div className="section-inner">
@@ -298,19 +489,39 @@ export default function Home() {
             <p className="white-sub">See how our verified professionals deliver excellence.</p>
           </div>
           <div className="h-scroll" style={{ paddingBottom: '20px' }}>
-            {['video1.mp4', 'video2.mp4', 'video3.mp4'].map((vid, idx) => (
-              <div key={idx} style={{ 
+            {(showcaseVideos.length > 0 ? showcaseVideos : [
+              { id: 'v1', video_url: '/videos/video1.mp4', title: 'Quality Workmanship' },
+              { id: 'v2', video_url: '/videos/video2.mp4', title: 'Verified Professionals' },
+              { id: 'v3', video_url: '/videos/video3.mp4', title: 'Prompt Local Service' }
+            ]).map((vid, idx) => (
+              <div key={vid.id || idx} style={{ 
                 flex: '0 0 280px', // Fixed width for side-by-side scrolling
                 borderRadius: '16px', overflow: 'hidden', background: '#0f172a', 
                 boxShadow: '0 10px 25px rgba(0,0,0,0.3)', border: '1px solid #334155',
                 position: 'relative', paddingTop: '497px' /* 280 * 16/9 = 497px */
               }}>
                 <video 
-                  src={`/videos/${vid}`}
+                  src={vid.video_url}
                   controls
                   preload="metadata"
                   style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                 />
+                {vid.title && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    padding: '12px 14px',
+                    background: 'linear-gradient(to top, rgba(15,23,42,0.95), transparent)',
+                    color: '#fff',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    pointerEvents: 'none'
+                  }}>
+                    {vid.title}
+                  </div>
+                )}
               </div>
             ))}
           </div>

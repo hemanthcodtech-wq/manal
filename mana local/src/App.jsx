@@ -39,6 +39,7 @@ import AdminCategories from './pages/admin/AdminCategories';
 import AdminSubscriptions from './pages/admin/AdminSubscriptions';
 import AdminSubscriptionReports from './pages/admin/AdminSubscriptionReports';
 import AdminPromotionalAds from './pages/admin/AdminPromotionalAds';
+import AdminVideos from './pages/admin/AdminVideos';
 
 import WorkerDashboard from './pages/worker/WorkerDashboard';
 import WorkerLayout from './pages/worker/WorkerLayout';
@@ -103,6 +104,7 @@ function Layout() {
           {/* Admin */}
           <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminLayout /></ProtectedRoute>}>
             <Route index element={<AdminDashboard />} />
+            <Route path="videos"                  element={<AdminVideos />} />
             <Route path="customers"               element={<AdminCustomers />} />
             <Route path="workers"                 element={<AdminWorkers />} />
             <Route path="jobs"                    element={<AdminJobs />} />

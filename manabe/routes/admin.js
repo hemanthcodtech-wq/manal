@@ -108,26 +108,124 @@ module.exports = (pool, redisClient) => {
     }
   });
 
+  // Hemanth Kancharla 
+
   // Get all workers
   router.get('/workers', cache('admin_workers'), async (req, res) => {
     try {
       const result = await pool.query(`
-        SELECT u.id, u.name, u.email, u.phone, u.status, u.rating, u.avatar, u.created_at, 
+        SELECT u.id, u.name, u.email, u.phone, u.status, u.available, u.rating, u.avatar, u.created_at, 
                u.aadhar_no, u.experience, u.location, u.category_id, u.subcategory_id, u.plan_id, u.payment_id, u.jobs_done,
-               u.profile_views,
+               u.profile_views, u.rate_per_hour, u.rate_per_day, u.rate_per_week, u.description,
+               u.available_from, u.available_to, u.available_days, u.latitude, u.longitude,
                c.name as category_name, sc.name as subcategory_name,
-               s.plan as plan_name, s.days as plan_days, s.amount as plan_amount
+               s.plan as plan_name, s.days as plan_days, s.amount as plan_amount,
+               COALESCE(
+                 json_agg(
+                   json_build_object(
+                     'id', ws.id,
+                     'category_id', ws.category_id,
+                     'subcategory_id', ws.subcategory_id,
+                     'category_name', c_ws.name,
+                     'subcategory_name', sc_ws.name,
+                     'rate_per_hour', ws.rate_per_hour,
+                     'rate_per_day', ws.rate_per_day,
+                     'rate_per_week', ws.rate_per_week,
+                     'description', ws.description,
+                     'available_from', ws.available_from,
+                     'available_to', ws.available_to,
+                     'available_days', ws.available_days
+                   )
+                 ) FILTER (WHERE ws.id IS NOT NULL), '[]'
+               ) AS additional_services
         FROM users u
         LEFT JOIN categories c ON u.category_id = c.id
         LEFT JOIN subcategories sc ON u.subcategory_id = sc.id
         LEFT JOIN subscriptions s ON u.plan_id = s.id
+        LEFT JOIN worker_services ws ON u.id = ws.worker_id
+        LEFT JOIN categories c_ws ON ws.category_id = c_ws.id
+        LEFT JOIN subcategories sc_ws ON ws.subcategory_id = sc_ws.id
         WHERE u.role = 'worker' 
+        GROUP BY u.id, c.name, sc.name, s.plan, s.days, s.amount
         ORDER BY u.created_at DESC
       `);
       res.json({ success: true, workers: result.rows });
     } catch (error) {
       console.error('Error fetching workers:', error);
       res.status(500).json({ error: 'Failed to fetch workers' });
+    }
+  });
+
+  // Update worker details by Admin
+  router.put('/workers/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { 
+        name, phone, aadhar_no, experience, location, 
+        rate_per_hour, rate_per_day, rate_per_week, description,
+        category_id, subcategory_id, status, available, additional_services
+      } = req.body;
+
+      const result = await pool.query(
+        `UPDATE users SET 
+          name = COALESCE($1, name),
+          phone = COALESCE($2, phone),
+          aadhar_no = COALESCE($3, aadhar_no),
+          experience = COALESCE($4, experience),
+          location = COALESCE($5, location),
+          rate_per_hour = $6,
+          rate_per_day = $7,
+          rate_per_week = $8,
+          description = COALESCE($9, description),
+          category_id = COALESCE($10, category_id),
+          subcategory_id = COALESCE($11, subcategory_id),
+          status = COALESCE($12, status),
+          available = COALESCE($13, available)
+         WHERE id = $14 RETURNING *`,
+        [
+          name, phone, aadhar_no, experience, location,
+          rate_per_hour !== undefined ? rate_per_hour : 0, 
+          rate_per_day !== undefined ? rate_per_day : 0, 
+          rate_per_week !== undefined ? rate_per_week : 0, 
+          description !== undefined ? description : '',
+          category_id || null, subcategory_id || null, status || null,
+          available !== undefined ? available : null,
+          id
+        ]
+      );
+
+      // If additional_services were edited/passed, update them
+      if (Array.isArray(additional_services)) {
+        for (const s of additional_services) {
+          if (s.id) {
+            await pool.query(
+              `UPDATE worker_services SET 
+                rate_per_hour = $1, rate_per_day = $2, rate_per_week = $3, description = $4
+               WHERE id = $5 AND worker_id = $6`,
+              [s.rate_per_hour || 0, s.rate_per_day || 0, s.rate_per_week || 0, s.description || '', s.id, id]
+            );
+          }
+        }
+      }
+
+      // Invalidate cache for both admin and public workers
+      if (redisClient && redisClient.isReady) {
+        try {
+          const keys = await redisClient.keys('admin_workers:*');
+          const pubKeys = await redisClient.keys('public_workers_*');
+          const toDelete = [...keys, ...pubKeys];
+          if (toDelete.length > 0) {
+            await redisClient.del(toDelete);
+          }
+        } catch (e) {
+          console.error('Error clearing redis cache for workers:', e);
+        }
+      }
+
+      res.json({ success: true, worker: result.rows[0] });
+    } catch (error) {
+      console.error('Error updating worker:', error);
+      res.status(500).json({ error: 'Failed to update worker' });
     }
   });
 
@@ -372,14 +470,15 @@ module.exports = (pool, redisClient) => {
   // Create a new real estate listing
   router.post('/real-estate', async (req, res) => {
     try {
-      const { title, description, price, property_type, location, bedrooms, bathrooms, area_sqft, contact_phone, contact_email, status, images, videos } = req.body;
+      const { title, description, price, property_type, location, bedrooms, bathrooms, area_sqft, contact_phone, contact_email, status, images, videos, facing } = req.body;
       const result = await pool.query(
-        `INSERT INTO real_estate (title, description, price, property_type, location, bedrooms, bathrooms, area_sqft, contact_phone, contact_email, status, images, videos) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+        `INSERT INTO real_estate (title, description, price, property_type, location, bedrooms, bathrooms, area_sqft, contact_phone, contact_email, status, images, videos, facing) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
         [
           title, description, price || null, property_type, location, bedrooms || null, bathrooms || null, area_sqft || null, 
           contact_phone, contact_email, status || 'available',
-          JSON.stringify(images || []), JSON.stringify(videos || [])
+          JSON.stringify(images || []), JSON.stringify(videos || []),
+          facing || null
         ]
       );
       res.json({ success: true, property: result.rows[0] });
@@ -393,14 +492,15 @@ module.exports = (pool, redisClient) => {
   router.put('/real-estate/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      const { title, description, price, property_type, location, bedrooms, bathrooms, area_sqft, contact_phone, contact_email, status, images, videos } = req.body;
+      const { title, description, price, property_type, location, bedrooms, bathrooms, area_sqft, contact_phone, contact_email, status, images, videos, facing } = req.body;
       const result = await pool.query(
-        `UPDATE real_estate SET title = $1, description = $2, price = $3, property_type = $4, location = $5, bedrooms = $6, bathrooms = $7, area_sqft = $8, contact_phone = $9, contact_email = $10, status = $11, images = $12, videos = $13
-         WHERE id = $14 RETURNING *`,
+        `UPDATE real_estate SET title = $1, description = $2, price = $3, property_type = $4, location = $5, bedrooms = $6, bathrooms = $7, area_sqft = $8, contact_phone = $9, contact_email = $10, status = $11, images = $12, videos = $13, facing = $14
+         WHERE id = $15 RETURNING *`,
         [
           title, description, price || null, property_type, location, bedrooms || null, bathrooms || null, area_sqft || null, 
           contact_phone, contact_email, status || 'available',
           JSON.stringify(images || []), JSON.stringify(videos || []),
+          facing || null,
           id
         ]
       );
@@ -635,6 +735,65 @@ module.exports = (pool, redisClient) => {
       res.json({ success: true, message: 'Promo ad deleted' });
     } catch (error) {
       res.status(500).json({ error: 'Failed to delete promo ad' });
+    }
+  });
+
+  // ── Showcase Videos Endpoints ──
+  router.get('/showcase-videos', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT * FROM showcase_videos ORDER BY order_index ASC, id DESC');
+      res.json({ success: true, videos: result.rows });
+    } catch (error) {
+      console.error('Error fetching showcase videos:', error);
+      res.status(500).json({ error: 'Failed to fetch showcase videos' });
+    }
+  });
+
+  router.post('/showcase-videos/upload', uploadMedia.single('video'), (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No video file provided' });
+    }
+    res.json({ success: true, url: req.file.path });
+  });
+
+  router.post('/showcase-videos', async (req, res) => {
+    try {
+      const { title, description, video_url, thumbnail_url, order_index, is_active } = req.body;
+      if (!video_url) {
+        return res.status(400).json({ success: false, error: 'Video URL is required' });
+      }
+      const result = await pool.query(
+        'INSERT INTO showcase_videos (title, description, video_url, thumbnail_url, order_index, is_active) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+        [title || '', description || '', video_url, thumbnail_url || null, order_index || 0, is_active !== false]
+      );
+      res.json({ success: true, video: result.rows[0] });
+    } catch (error) {
+      console.error('Error adding showcase video:', error);
+      res.status(500).json({ error: 'Failed to add showcase video' });
+    }
+  });
+
+  router.put('/showcase-videos/:id', async (req, res) => {
+    try {
+      const { title, description, video_url, thumbnail_url, order_index, is_active } = req.body;
+      const result = await pool.query(
+        'UPDATE showcase_videos SET title = $1, description = $2, video_url = $3, thumbnail_url = $4, order_index = $5, is_active = $6 WHERE id = $7 RETURNING *',
+        [title, description, video_url, thumbnail_url, order_index, is_active, req.params.id]
+      );
+      res.json({ success: true, video: result.rows[0] });
+    } catch (error) {
+      console.error('Error updating showcase video:', error);
+      res.status(500).json({ error: 'Failed to update showcase video' });
+    }
+  });
+
+  router.delete('/showcase-videos/:id', async (req, res) => {
+    try {
+      await pool.query('DELETE FROM showcase_videos WHERE id = $1', [req.params.id]);
+      res.json({ success: true, message: 'Video removed successfully' });
+    } catch (error) {
+      console.error('Error deleting showcase video:', error);
+      res.status(500).json({ error: 'Failed to delete showcase video' });
     }
   });
 

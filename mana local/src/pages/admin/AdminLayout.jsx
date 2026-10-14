@@ -1,13 +1,14 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useState, useRef, useEffect } from 'react';
-import { HiHome, HiClipboardList, HiUsers, HiDotsHorizontal, HiLogout, HiChevronDown, HiDocumentText, HiCurrencyRupee, HiChartBar, HiOfficeBuilding, HiViewGridAdd } from 'react-icons/hi';
+import { HiHome, HiClipboardList, HiUsers, HiDotsHorizontal, HiLogout, HiChevronDown, HiDocumentText, HiCurrencyRupee, HiChartBar, HiOfficeBuilding, HiViewGridAdd, HiVideoCamera } from 'react-icons/hi';
 import { MdEngineering, MdConstruction } from 'react-icons/md';
 import logo from '../../assets/logo.png';
 import './Admin.css';
 
 const NAV = [
   { to: '/admin',                       icon: HiHome,           label: 'Dashboard', end: true },
+  { to: '/admin/videos',                icon: HiVideoCamera,    label: 'Videos Uploading'    },
   { to: '/admin/customers',             icon: HiUsers,          label: 'Customers'           },
   { to: '/admin/workers',               icon: MdEngineering,    label: 'Workers'             },
   { to: '/admin/jobs',                  icon: HiClipboardList,  label: 'Jobs Posting'        },

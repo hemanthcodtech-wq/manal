@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-module.exports = (pool) => {
+module.exports = (pool, redisClient) => {
   
   // Get Worker Profile
   router.get('/:id/profile', async (req, res) => {
@@ -95,6 +95,21 @@ module.exports = (pool) => {
         [available, id]
       );
       if (result.rows.length === 0) return res.status(404).json({ error: 'Worker not found' });
+
+      // Invalidate public workers and admin workers cache
+      if (redisClient && redisClient.isReady) {
+        try {
+          const keys = await redisClient.keys('public_workers_*');
+          const adminKeys = await redisClient.keys('admin_workers:*');
+          const toDelete = [...keys, ...adminKeys];
+          if (toDelete.length > 0) {
+            await redisClient.del(toDelete);
+          }
+        } catch (cacheErr) {
+          console.error('Error clearing redis cache on availability change:', cacheErr);
+        }
+      }
+
       res.json({ success: true, available: result.rows[0].available });
     } catch (error) {
       console.error(error);

@@ -6,6 +6,7 @@ import {
   HiIdentification, HiTruck, HiBriefcase, HiStar,
 } from 'react-icons/hi';
 import { MdConstruction, MdEngineering } from 'react-icons/md';
+import LocationPicker from '../../components/LocationPicker';
 import logo from '../../assets/logo.png';
 import './Auth.css';
 
@@ -15,8 +16,18 @@ export default function Register() {
   const role = 'worker'; // Hardcoded to worker for this app
   const [step, setStep] = useState(1);  // 1: form, 2: worker details, 3: plan, 4: otp
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '' });
-  const [workerForm, setWorkerForm] = useState({ category_id: '', subcategory_id: '', licenseNo: '', experience: '', address: '', plan_id: '' });
+  const [workerForm, setWorkerForm] = useState({ 
+    category_id: '', 
+    subcategory_id: '', 
+    licenseNo: '', 
+    experience: '', 
+    address: '', 
+    latitude: null, 
+    longitude: null, 
+    plan_id: '' 
+  });
   const [avatarFile, setAvatarFile] = useState(null);
+
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -288,6 +299,9 @@ export default function Register() {
         aadhar_no: workerForm.licenseNo,
         experience: workerForm.experience,
         address: workerForm.address,
+        latitude: workerForm.latitude,
+        longitude: workerForm.longitude,
+        is_location_fixed: 1,
         avatar: uploadedAvatarUrl,
         rating: 4.5,
         jobsDone: 0,
@@ -428,12 +442,34 @@ export default function Register() {
                   </select>
                 </div>
               </label>
-              <label>Current City
-                <div className="input-wrap">
+              <label>Operating Base / Workshop Location
+                <div className="input-wrap" style={{ marginBottom: '8px' }}>
                   <MdEngineering className="input-icon" />
-                  <input placeholder="City, State" {...w('address')} />
+                  <input 
+                    placeholder="Locality / Area, City (or auto-detect below)" 
+                    value={workerForm.address} 
+                    onChange={e => setWorkerForm(p => ({ ...p, address: e.target.value }))}
+                    required
+                  />
                 </div>
               </label>
+
+              <LocationPicker 
+                value={{
+                  address: workerForm.address,
+                  latitude: workerForm.latitude,
+                  longitude: workerForm.longitude
+                }}
+                onChange={(loc) => {
+                  setWorkerForm(p => ({
+                    ...p,
+                    address: loc.address || p.address,
+                    latitude: loc.latitude,
+                    longitude: loc.longitude
+                  }));
+                }}
+              />
+
               {error && <div className="auth-error">⚠️ {error}</div>}
               <button type="submit" className="auth-submit">
                 <span>Choose Plan</span> <HiArrowRight style={{ width: 16, height: 16 }} />

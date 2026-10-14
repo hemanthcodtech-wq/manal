@@ -63,13 +63,17 @@ const initDB = async () => {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS rate_per_hour INT DEFAULT 0;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS rate_per_day INT DEFAULT 0;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS rate_per_week INT DEFAULT 0;
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS available BOOLEAN DEFAULT false;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS available BOOLEAN DEFAULT true;
+      ALTER TABLE users ALTER COLUMN available SET DEFAULT true;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS description TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS available_from VARCHAR(50);
       ALTER TABLE users ADD COLUMN IF NOT EXISTS available_to VARCHAR(50);
       ALTER TABLE users ADD COLUMN IF NOT EXISTS available_days VARCHAR(255);
       ALTER TABLE users ADD COLUMN IF NOT EXISTS cover_image VARCHAR(500);
       ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_views INT DEFAULT 0;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,6);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS longitude DECIMAL(10,6);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS is_location_fixed BOOLEAN DEFAULT false;
 
       CREATE TABLE IF NOT EXISTS categories (
         id SERIAL PRIMARY KEY,
@@ -107,6 +111,7 @@ const initDB = async () => {
 
       ALTER TABLE real_estate ADD COLUMN IF NOT EXISTS images JSONB DEFAULT '[]'::jsonb;
       ALTER TABLE real_estate ADD COLUMN IF NOT EXISTS videos JSONB DEFAULT '[]'::jsonb;
+      ALTER TABLE real_estate ADD COLUMN IF NOT EXISTS facing VARCHAR(50);
 
       CREATE TABLE IF NOT EXISTS worker_services (
         id SERIAL PRIMARY KEY,
@@ -194,6 +199,17 @@ const initDB = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      CREATE TABLE IF NOT EXISTS showcase_videos (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255),
+        description TEXT,
+        video_url VARCHAR(1000) NOT NULL,
+        thumbnail_url VARCHAR(1000),
+        order_index INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       ALTER TABLE promo_plans ADD COLUMN IF NOT EXISTS ad_type VARCHAR(50) DEFAULT 'both';
     `);
     console.log('Database schema initialized');
@@ -227,7 +243,7 @@ app.use('/api/payment', paymentRoutes(pool));
 
 // Mount worker routes
 const workerRoutes = require('./routes/worker');
-app.use('/api/worker', workerRoutes(pool));
+app.use('/api/worker', workerRoutes(pool, redisClient));
 
 // Public routes for categories and subcategories
 app.get('/api/public/categories', async (req, res) => {
@@ -293,6 +309,19 @@ app.get('/api/public/active-ads', async (req, res) => {
   }
 });
 
+// Public routes for showcase videos
+app.get('/api/public/showcase-videos', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM showcase_videos WHERE is_active = true ORDER BY order_index ASC, id DESC'
+    );
+    res.json({ success: true, videos: result.rows });
+  } catch (err) {
+    console.error('Error fetching public showcase videos:', err);
+    res.status(500).json({ success: false, videos: [] });
+  }
+});
+
 // Public routes for workers
 app.get('/api/public/workers', async (req, res) => {
   try {
@@ -303,18 +332,29 @@ app.get('/api/public/workers', async (req, res) => {
       return res.json({ success: true, workers: JSON.parse(cachedData) });
     }
 
-    let query = 'SELECT * FROM users WHERE role = $1 AND status = $2';
+    // Only show workers who are active (not marked busy/suspended by Admin) AND available (toggled online by worker)
+    let query = `
+      SELECT u.id, u.name, u.email, u.phone, u.status, u.available, u.rating, u.avatar, u.created_at,
+             u.aadhar_no, u.experience, u.location, u.category_id, u.subcategory_id, u.jobs_done,
+             u.profile_views, u.rate_per_hour, u.rate_per_day, u.rate_per_week, u.description,
+             u.available_from, u.available_to, u.available_days, u.latitude, u.longitude,
+             c.name as category_name, sc.name as subcategory_name
+      FROM users u
+      LEFT JOIN categories c ON u.category_id = c.id
+      LEFT JOIN subcategories sc ON u.subcategory_id = sc.id
+      WHERE u.role = $1 AND u.status = $2 AND u.available = true
+    `;
     const params = ['worker', 'active'];
     
     if (subcategory_id) {
-      query += ' AND subcategory_id = $3';
+      query += ' AND u.subcategory_id = $3';
       params.push(subcategory_id);
     }
     
-    query += ' ORDER BY rating DESC';
+    query += ' ORDER BY u.rating DESC, u.created_at DESC';
     
     const result = await pool.query(query, params);
-    await redisClient.setEx(cacheKey, 600, JSON.stringify(result.rows)); // 10 minutes cache
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(result.rows)); // 1 minute cache for fresh availability
     res.json({ success: true, workers: result.rows });
   } catch (err) {
     console.error(err);

@@ -106,7 +106,8 @@ module.exports = (pool) => {
     const { 
       name, email, phone, password, 
       category_id, subcategory_id, plan_id, payment_id, 
-      aadhar_no, experience, address, avatar
+      aadhar_no, experience, address, avatar,
+      latitude, longitude, is_location_fixed
     } = req.body;
     
     try {
@@ -124,14 +125,16 @@ module.exports = (pool) => {
       const insertQuery = `
         INSERT INTO users (
           name, email, phone, password, role, is_verified, 
-          category_id, subcategory_id, plan_id, payment_id, aadhar_no, experience, location, avatar
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *
+          category_id, subcategory_id, plan_id, payment_id, aadhar_no, experience, location, avatar,
+          latitude, longitude, is_location_fixed
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *
       `;
       
       const result = await pool.query(insertQuery, [
         name, email, phone, hashedPassword, role, is_verified,
         category_id || null, subcategory_id || null, plan_id || null, payment_id || null, 
-        aadhar_no || null, experience || null, address || null, avatar || null
+        aadhar_no || null, experience || null, address || null, avatar || null,
+        latitude || null, longitude || null, is_location_fixed ? true : false
       ]);
 
       const newUser = result.rows[0];
