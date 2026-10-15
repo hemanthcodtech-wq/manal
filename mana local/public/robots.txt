@@ -1,0 +1,35 @@
+# robots.txt for OurLocal
+# https://www.ourlocal.in/
+
+User-agent: *
+Allow: /
+Allow: /browse
+Allow: /workers
+Allow: /professional/
+Allow: /jobs
+Allow: /job/
+Allow: /realestate
+Allow: /property/
+Allow: /about
+Allow: /contact
+Allow: /terms
+Allow: /privacy
+Allow: /disclaimer
+
+# Disallow authenticated, dashboard and checkout flows
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /worker
+Disallow: /worker/*
+Disallow: /book/
+Disallow: /book/*
+Disallow: /track/
+Disallow: /track/*
+Disallow: /orders
+Disallow: /cart
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+
+# Sitemap
+Sitemap: https://www.ourlocal.in/sitemap.xml
