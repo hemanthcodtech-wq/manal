@@ -13,16 +13,20 @@ app.use(cors());
 app.use(express.json());
 
 // Redis client setup
-const redisClient = redis.createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
-});
-
-redisClient.on('error', (err) => console.log('Redis Client Error', err));
-
-(async () => {
-  await redisClient.connect();
-  console.log('Connected to Redis');
-})();
+let redisClient = null;
+if (process.env.REDIS_URL) {
+  try {
+    redisClient = redis.createClient({
+      url: process.env.REDIS_URL
+    });
+    redisClient.on('error', (err) => console.warn('Redis Client Warning:', err.message));
+    redisClient.connect().then(() => console.log('Connected to Redis')).catch(err => console.warn('Redis connection failed:', err.message));
+  } catch (err) {
+    console.warn('Failed to initialize Redis:', err.message);
+  }
+} else {
+  console.log('No REDIS_URL provided; running without cache.');
+}
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -249,16 +253,24 @@ app.use('/api/worker', workerRoutes(pool, redisClient));
 app.get('/api/public/categories', async (req, res) => {
   try {
     const cacheKey = 'public_categories';
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-      return res.json({ success: true, categories: JSON.parse(cachedData) });
+    if (redisClient && redisClient.isReady) {
+      try {
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+          return res.json({ success: true, categories: JSON.parse(cachedData) });
+        }
+      } catch (cacheErr) {
+        console.warn('Redis get error:', cacheErr.message);
+      }
     }
     const result = await pool.query('SELECT * FROM categories ORDER BY created_at DESC');
-    await redisClient.setEx(cacheKey, 3600, JSON.stringify(result.rows));
+    if (redisClient && redisClient.isReady) {
+      redisClient.setEx(cacheKey, 3600, JSON.stringify(result.rows)).catch(() => {});
+    }
     res.json({ success: true, categories: result.rows });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
@@ -266,32 +278,48 @@ app.get('/api/public/categories/:categoryId/subcategories', async (req, res) => 
   try {
     const { categoryId } = req.params;
     const cacheKey = `public_subcategories_${categoryId}`;
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-      return res.json({ success: true, subcategories: JSON.parse(cachedData) });
+    if (redisClient && redisClient.isReady) {
+      try {
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+          return res.json({ success: true, subcategories: JSON.parse(cachedData) });
+        }
+      } catch (cacheErr) {
+        console.warn('Redis get error:', cacheErr.message);
+      }
     }
     const result = await pool.query('SELECT * FROM subcategories WHERE category_id = $1 ORDER BY created_at DESC', [categoryId]);
-    await redisClient.setEx(cacheKey, 3600, JSON.stringify(result.rows));
+    if (redisClient && redisClient.isReady) {
+      redisClient.setEx(cacheKey, 3600, JSON.stringify(result.rows)).catch(() => {});
+    }
     res.json({ success: true, subcategories: result.rows });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
 app.get('/api/public/subcategories/all', async (req, res) => {
   try {
     const cacheKey = 'public_all_subcategories';
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-      return res.json({ success: true, subcategories: JSON.parse(cachedData) });
+    if (redisClient && redisClient.isReady) {
+      try {
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+          return res.json({ success: true, subcategories: JSON.parse(cachedData) });
+        }
+      } catch (cacheErr) {
+        console.warn('Redis get error:', cacheErr.message);
+      }
     }
     const result = await pool.query('SELECT * FROM subcategories ORDER BY created_at DESC');
-    await redisClient.setEx(cacheKey, 3600, JSON.stringify(result.rows));
+    if (redisClient && redisClient.isReady) {
+      redisClient.setEx(cacheKey, 3600, JSON.stringify(result.rows)).catch(() => {});
+    }
     res.json({ success: true, subcategories: result.rows });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
@@ -305,7 +333,7 @@ app.get('/api/public/active-ads', async (req, res) => {
     res.json({ success: true, ads: result.rows });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
@@ -327,9 +355,15 @@ app.get('/api/public/workers', async (req, res) => {
   try {
     const { subcategory_id } = req.query;
     const cacheKey = subcategory_id ? `public_workers_sub_${subcategory_id}` : 'public_workers_all';
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-      return res.json({ success: true, workers: JSON.parse(cachedData) });
+    if (redisClient && redisClient.isReady) {
+      try {
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+          return res.json({ success: true, workers: JSON.parse(cachedData) });
+        }
+      } catch (cacheErr) {
+        console.warn('Redis get error:', cacheErr.message);
+      }
     }
 
     // Only show workers who are active (not marked busy/suspended by Admin) AND available (toggled online by worker)
@@ -354,11 +388,13 @@ app.get('/api/public/workers', async (req, res) => {
     query += ' ORDER BY u.rating DESC, u.created_at DESC';
     
     const result = await pool.query(query, params);
-    await redisClient.setEx(cacheKey, 60, JSON.stringify(result.rows)); // 1 minute cache for fresh availability
+    if (redisClient && redisClient.isReady) {
+      redisClient.setEx(cacheKey, 60, JSON.stringify(result.rows)).catch(() => {});
+    }
     res.json({ success: true, workers: result.rows });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
