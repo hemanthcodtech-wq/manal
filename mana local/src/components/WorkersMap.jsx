@@ -22,6 +22,7 @@ export default function WorkersMap({
     const token = import.meta.env.VITE_MAPBOX_TOKEN || '';
     if (!token) {
       setTokenMissing(true);
+      return;
     }
     mapboxgl.accessToken = token;
 
@@ -29,13 +30,20 @@ export default function WorkersMap({
     const initialLng = userLocation?.lng || 78.4867;
     const initialLat = userLocation?.lat || 17.3850;
 
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [initialLng, initialLat],
-      zoom: 12,
-      attributionControl: false
-    });
+    let map;
+    try {
+      map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [initialLng, initialLat],
+        zoom: 12,
+        attributionControl: false
+      });
+    } catch (e) {
+      console.warn('Mapbox initialization failed:', e);
+      setTokenMissing(true);
+      return;
+    }
 
     map.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right');
 

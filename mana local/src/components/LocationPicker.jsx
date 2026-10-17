@@ -46,17 +46,22 @@ export default function LocationPicker({
   // Initialize Mapbox
   useEffect(() => {
     const token = import.meta.env.VITE_MAPBOX_TOKEN || '';
+    if (!token || !mapContainerRef.current) return;
     mapboxgl.accessToken = token;
 
-    if (!mapContainerRef.current) return;
-
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [coords.lng, coords.lat],
-      zoom: isFixed ? 14 : 11,
-      attributionControl: false
-    });
+    let map;
+    try {
+      map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [coords.lng, coords.lat],
+        zoom: isFixed ? 14 : 11,
+        attributionControl: false
+      });
+    } catch (e) {
+      console.warn('Mapbox initialization failed:', e);
+      return;
+    }
 
     const marker = new mapboxgl.Marker({
       draggable: true,
