@@ -90,11 +90,8 @@
   color: #ef4444;
 }
 .bn-tab.live .bn-icon {
-  animation: liveBounce 1.2s ease-in-out infinite;
-}
-@keyframes liveBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  opacity: 0.9;
+  transition: transform 0.2s;
 }
 
 .live-ring {
@@ -106,12 +103,7 @@
   height: 28px;
   border-radius: 50%;
   border: 2px solid #ef4444;
-  opacity: 0;
-  animation: ringPulse 1.5s ease-out infinite;
-}
-@keyframes ringPulse {
-  0% { transform: translateX(-50%) scale(0.6); opacity: 0.8; }
-  100% { transform: translateX(-50%) scale(1.4); opacity: 0; }
+  opacity: 0.4;
 }
 
 @media (min-width: 768px) {

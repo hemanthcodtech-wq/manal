@@ -190,36 +190,60 @@ export default function Workers() {
                   onMouseLeave={() => setHoveredWorkerId(null)}
                 >
                   <div className="wc-header">
-                    <img src={worker.image} alt={worker.name} className="wc-avatar" />
+                    <div className="wc-avatar-container">
+                      <img src={worker.image} alt={worker.name} className="wc-avatar" />
+                      <span className="wc-online-indicator" title="Available now" />
+                    </div>
                     <div className="wc-info">
                       <h3>{worker.name} <HiBadgeCheck className="verified-badge" /></h3>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
+                      <div className="wc-meta-row">
                         <div className="wc-rating">
                           <HiStar className="star-icon" /> {worker.rating} <span>({worker.jobsCompleted} jobs)</span>
                         </div>
-                        <div style={{ fontSize: '13px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px', background: '#f8fafc', padding: '4px 10px', borderRadius: '20px' }}>
-                          <HiLocationMarker style={{ color: '#0ea5e9' }} /> {worker.distance}
+                        <div className="wc-distance-badge">
+                          <HiLocationMarker /> {worker.distance}
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="wc-price" style={{ margin: '0 24px 16px', padding: '12px 16px', background: 'linear-gradient(135deg, #f8fafc, #f1f5f9)', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#64748b' }}>Starting at</span>
-                    <strong style={{ fontSize: '19px', color: '#0284c7' }}>
-                      ₹{worker.rate}
-                    </strong>
+                  <div className="wc-price-card">
+                    <div>
+                      <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', color: '#64748b', fontWeight: 700 }}>Starting Rate</div>
+                      <div style={{ fontSize: '12.5px', color: '#0369a1', fontWeight: 700, marginTop: '3px' }}>📍 {worker.location}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div className="wc-price-rate">
+                        ₹{worker.rate}
+                      </div>
+                      <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>{worker.experience} exp</span>
+                    </div>
                   </div>
 
-                  <div style={{ padding: '0 24px 24px' }}>
+                  <div className="wc-actions-wrap">
+                    <div className="wc-contact-grid">
+                      <a 
+                        href={`tel:${worker.phone}`}
+                        className="wc-action-call"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <HiPhone style={{ fontSize: '16px' }} /> Call
+                      </a>
+                      <a 
+                        href={`https://wa.me/${worker.whatsapp.replace(/[^0-9]/g, '')}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="wc-action-chat"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <FaWhatsapp style={{ fontSize: '16px' }} /> WhatsApp
+                      </a>
+                    </div>
                     <button 
                       onClick={() => navigate(`/professional/${worker.id}`)}
-                      className="wd-premium-btn"
-                      style={{ width: '100%', background: 'linear-gradient(135deg, #0284c7, #0369a1)', color: '#fff', border: 'none', padding: '14px', borderRadius: '12px', fontSize: '15px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 12px rgba(2,132,199,0.2)', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
-                      onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(2,132,199,0.3)'; }}
-                      onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(2,132,199,0.2)'; }}
+                      className="wc-action-profile"
                     >
-                      View Premium Profile
+                      View Full Profile →
                     </button>
                   </div>
                 </div>

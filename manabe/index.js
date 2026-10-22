@@ -350,6 +350,50 @@ app.get('/api/public/showcase-videos', async (req, res) => {
   }
 });
 
+// Public routes for real estate listings
+app.get('/api/public/real-estate', async (req, res) => {
+  try {
+    const cacheKey = 'public_real_estate';
+    if (redisClient && redisClient.isReady) {
+      try {
+        const cached = await redisClient.get(cacheKey);
+        if (cached) {
+          return res.json({ success: true, properties: JSON.parse(cached) });
+        }
+      } catch (cacheErr) {
+        console.warn('Redis get error:', cacheErr.message);
+      }
+    }
+    const result = await pool.query(
+      "SELECT * FROM real_estate WHERE status = 'available' ORDER BY created_at DESC"
+    );
+    if (redisClient && redisClient.isReady) {
+      redisClient.setEx(cacheKey, 60, JSON.stringify(result.rows)).catch(() => {});
+    }
+    res.json({ success: true, properties: result.rows });
+  } catch (err) {
+    console.error('Error fetching public real estate:', err);
+    res.status(500).json({ success: false, error: err.message, properties: [] });
+  }
+});
+
+app.get('/api/public/real-estate/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      "SELECT * FROM real_estate WHERE id = $1",
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Property not found' });
+    }
+    res.json({ success: true, property: result.rows[0] });
+  } catch (err) {
+    console.error('Error fetching property by id:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Public routes for workers
 app.get('/api/public/workers', async (req, res) => {
   try {

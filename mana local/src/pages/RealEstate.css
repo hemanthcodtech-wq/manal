@@ -6,10 +6,12 @@
 
 .re-hero {
   position: relative;
-  height: 400px;
+  min-height: 480px;
   width: 100%;
   overflow: hidden;
-  margin-top: 0;
+  margin-top: -120px; /* Seamless flush alignment directly under fixed header */
+  display: flex;
+  align-items: center;
 }
 
 .re-hero-bg {
@@ -20,38 +22,93 @@
   top: 0;
   left: 0;
   z-index: 0;
+  filter: brightness(0.85);
+  transform: scale(1.02);
+  transition: transform 10s ease;
+}
+
+.re-hero:hover .re-hero-bg {
+  transform: scale(1.08);
 }
 
 .re-hero-overlay {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(to right, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.5));
+  background: linear-gradient(105deg, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.8) 55%, rgba(15, 23, 42, 0.45) 100%);
   z-index: 1;
   display: flex;
   align-items: center;
-  padding: 0 40px;
+  padding: 60px 40px;
 }
 
 .re-hero-content {
   max-width: 1280px;
   width: 100%;
   margin: 0 auto;
-  color: #fff;
+  color: #ffffff;
+  position: relative;
+  z-index: 2;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.re-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(14, 165, 233, 0.18);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #38bdf8;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 999px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.re-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 10px #38bdf8;
+  animation: pulseDot 2s infinite ease-in-out;
 }
 
 .re-hero-content h1 {
-  font-size: 48px;
-  font-weight: 800;
+  font-size: 54px;
+  font-weight: 900;
   margin: 0 0 16px;
-  letter-spacing: -1px;
+  letter-spacing: -0.03em;
+  color: #ffffff !important;
+  line-height: 1.15;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(135deg, #ffffff 40%, #e2e8f0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .re-hero-content p {
-  font-size: 18px;
-  color: #cbd5e1;
-  margin: 0 0 40px;
-  max-width: 600px;
-  line-height: 1.5;
+  font-size: 19px;
+  color: #cbd5e1 !important;
+  margin: 0 0 36px;
+  max-width: 650px;
+  line-height: 1.6;
+  font-weight: 400;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes pulseDot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.5;
+  }
 }
 
 .re-search {
@@ -140,26 +197,28 @@
 
 .re-card {
   background: #fff;
-  border-radius: 24px;
+  border-radius: 28px;
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
   position: relative;
-  border: 1px solid rgba(0,0,0,0.02);
+  border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
 .re-card:hover {
-  transform: translateY(-12px);
-  box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+  transform: translateY(-10px);
+  border-color: rgba(2, 132, 199, 0.3);
+  box-shadow: 0 24px 48px -12px rgba(2, 132, 199, 0.2);
 }
 
 .re-card-img-wrap {
   position: relative;
-  height: 260px;
+  height: 270px;
   width: 100%;
   overflow: hidden;
+  background: #0f172a;
 }
 
 .re-card-img {
@@ -175,32 +234,33 @@
 
 .re-card-type {
   position: absolute;
-  top: 20px;
-  left: 20px;
-  background: rgba(255, 255, 255, 0.9);
+  top: 18px;
+  left: 18px;
+  background: rgba(255, 255, 255, 0.92);
   color: #0f172a;
-  padding: 8px 16px;
-  border-radius: 30px;
-  font-size: 0.85rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.5px;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   text-transform: uppercase;
 }
 
 .re-card-price {
   position: absolute;
-  bottom: -20px;
-  right: 24px;
+  bottom: -18px;
+  right: 20px;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: #fff;
-  padding: 10px 20px;
-  border-radius: 14px;
-  font-size: 1.25rem;
+  padding: 8px 18px;
+  border-radius: 12px;
+  font-size: 1.15rem;
   font-weight: 800;
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
   z-index: 2;
+  letter-spacing: -0.2px;
 }
 
 .re-card-content {
@@ -308,10 +368,11 @@
 }
 
 @media (max-width: 768px) {
-  .re-hero { height: 400px; }
-  .re-hero-content h1 { font-size: 2.5rem; }
-  .re-hero-content p { font-size: 1.1rem; }
-  .re-container { margin-top: -40px; }
+  .re-hero { min-height: 420px; margin-top: -100px; }
+  .re-hero-content h1 { font-size: 2.2rem; }
+  .re-hero-content p { font-size: 1rem; }
+  .re-hero-overlay { padding: 40px 20px; }
+  .re-container { margin-top: -30px; padding: 0 16px; }
   .re-header { padding: 20px; flex-direction: column; align-items: flex-start; }
   .re-grid { grid-template-columns: 1fr; }
   .re-card-img-wrap { height: 220px; }

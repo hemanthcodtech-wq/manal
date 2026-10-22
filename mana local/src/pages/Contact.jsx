@@ -17,7 +17,7 @@ export default function Contact() {
           className="contact-hero-img" 
         />
         <div className="contact-hero-overlay">
-          <h1>Get in Touch</h1>
+          <h1 style={{color:"white"}}>Get in Touch</h1>
           <p>We're here to help! Whether you're a customer looking for services or a worker looking for jobs.</p>
         </div>
       </div>

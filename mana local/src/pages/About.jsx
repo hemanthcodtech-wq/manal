@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { HiUserGroup, HiBriefcase, HiBadgeCheck } from 'react-icons/hi';
 import { MdOutlinePlumbing, MdElectricalServices } from 'react-icons/md';
 import Footer from '../components/Footer';
@@ -9,18 +9,22 @@ import './About.css';
 
 export default function About() {
   const containerRef = useScrollReveal();
+  const [openFaq, setOpenFaq] = useState(0);
 
   return (
     <div className="about-page" ref={containerRef}>
-      <div className="about-hero reveal-fade-in">
+      <div className="about-hero">
         <img 
           src={aboutHeroImg} 
           alt="Our Diverse Workforce" 
           className="about-hero-img" 
         />
         <div className="about-hero-overlay">
+          <div className="about-hero-badge">
+            <span className="about-badge-dot"></span> Empowering Local Workforces
+          </div>
           <h1>About Mana Local</h1>
-          <p>Connecting skilled professionals with the communities that need them.</p>
+          <p>Connecting skilled professionals with the communities that need them across India.</p>
         </div>
       </div>
 
@@ -97,20 +101,78 @@ export default function About() {
         </section>
 
         <section className="about-faq reveal-on-scroll">
-          <h2>Frequently Asked Questions</h2>
+          <div className="faq-header-center">
+            <span className="faq-pill-badge">❓ Got Questions?</span>
+            <h2 className="faq-main-title">Frequently Asked Questions</h2>
+            <p className="faq-subtitle">Everything you need to know about booking workers, verified real estate, and partnering with Mana Local.</p>
+          </div>
+
           <div className="faq-list">
-            <div className="faq-item">
-              <h4>How do I book a service?</h4>
-              <p>Simply navigate to the Categories section, select the service you need, choose a professional, and pick a time slot that works for you.</p>
-            </div>
-            <div className="faq-item">
-              <h4>Are the workers certified?</h4>
-              <p>Yes! We verify the credentials and experience of plumbers, electricians, and all technical workers before they join.</p>
-            </div>
-            <div className="faq-item">
-              <h4>How do I join as a worker?</h4>
-              <p>Click on the 'Worker Login' in the header and navigate to the registration page. Submit your details, and our team will approve you quickly.</p>
-            </div>
+            {[
+              {
+                q: "What is Mana Local and how does it work?",
+                a: "Mana Local is an intelligent hyper-local marketplace connecting residents directly with verified skilled professionals, heavy construction machinery, and verified real estate. Simply browse the categories or search by your location, view verified ratings, rates, and distances, and connect directly via phone call or WhatsApp."
+              },
+              {
+                q: "Are the professionals and workers on Mana Local background-checked?",
+                a: "Yes. Every technician, vehicle operator, and contractor undergoes verification including ID/Aadhaar checks, trade experience validation, and community reviews. Verified profiles display an official blue badge."
+              },
+              {
+                q: "Do I have to pay any upfront booking fee?",
+                a: "No! Mana Local has a strict Zero Upfront Fee Policy. You should never pay advance booking charges. You inspect the work quality or machine performance first and settle standard rates directly with the worker upon satisfactory completion."
+              },
+              {
+                q: "How is the distance between me and the professional calculated?",
+                a: "When you permit location access, Mana Local uses real-time GPS spatial coordinates to calculate the exact driving distance and route in kilometers between your current spot and the worker's base hub, ensuring prompt local dispatch."
+              },
+              {
+                q: "Can I book heavy equipment like excavators, tractors, or borewell rigs?",
+                a: "Yes! Our platform hosts specialized construction and agricultural machinery—including JCB backhoes, tractor rotavators, borewell rigs, and cranes—with transparent hourly and daily hire rates."
+              },
+              {
+                q: "How do I register as a skilled worker or service provider?",
+                a: "Click on 'Login' in the navigation bar and choose 'Worker Login', then tap 'Register as Worker'. Provide your name, category, skills, location, and phone number. Once verified by our local administration team, your profile goes live immediately."
+              },
+              {
+                q: "Are real estate properties on Mana Local listed by brokers or admins?",
+                a: "All properties on Mana Local are curated and verified directly by authorized platform admins. This ensures 100% genuine titles, verified photos, zero hidden brokerages, and direct contact with authorized site managers."
+              },
+              {
+                q: "What should I do if a worker doesn't arrive or demands extra payment?",
+                a: "In the rare event of an issue, you can immediately report the provider through our 24/7 support line (+91 98486 15849) or submit a ticket on our Contact page. Providers with policy violations are instantly suspended."
+              },
+              {
+                q: "In which cities and regions is Mana Local currently operational?",
+                a: "We currently have extensive network coverage across Hyderabad, Bangalore, Chimakurty, and neighboring metropolitan corridors, with continuous expansion across South India."
+              },
+              {
+                q: "Is there any cost for customers to search and view profiles?",
+                a: "No, browsing profiles, viewing equipment specs, checking real estate listings, and calculating GPS distance is 100% free for all customers."
+              }
+            ].map((item, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div 
+                  key={idx} 
+                  className={`faq-accordion-item ${isOpen ? 'is-open' : ''}`}
+                  onClick={() => setOpenFaq(isOpen ? null : idx)}
+                >
+                  <div className="faq-question-row">
+                    <span className="faq-question-text">
+                      <span className="faq-num">0{idx + 1}</span> {item.q}
+                    </span>
+                    <span className="faq-chevron-icon">
+                      {isOpen ? '−' : '+'}
+                    </span>
+                  </div>
+                  {isOpen && (
+                    <div className="faq-answer-row">
+                      <p>{item.a}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </section>
       </div>

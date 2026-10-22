@@ -21,15 +21,17 @@ import { TbTruckDelivery } from 'react-icons/tb';
 import { calculateDistanceKm, formatDistance, getWorkerCoordinates, getCustomerLocation } from '../utils/geoDistance';
 import './Home.css';
 
+import heroBannerImg from '../assets/hero_banner.jpg';
+
 const MANA_LOCAL_BANNER = {
   id: 'default',
   tag: 'Welcome to',
-  title: 'Mana Local',
-  sub: 'Your trusted platform for booking verified local professionals instantly.',
+  title: 'OurLocal',
+  sub: 'Connecting you with verified professionals, heavy machinery, and prime real estate.',
   cta: 'Explore Services',
   bg: 'linear-gradient(135deg, #1e40af, #3b82f6)',
   accent: '#fff',
-  img: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=1200&q=80'
+  img: heroBannerImg
 };
 
 const WHY = [
@@ -68,18 +70,18 @@ import { useDataFetch } from '../hooks/useDataFetch';
 
 export default function Home() {
   const navigate = useNavigate();
-  const containerRef = useScrollReveal();
+  const [dbCategories, setDbCategories] = useState([]);
+  const [dbSubcategories, setDbSubcategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [nearbyWorkers, setNearbyWorkers] = useState([]);
+  const containerRef = useScrollReveal([dbCategories.length, nearbyWorkers.length]);
   const [bannerIdx, setBannerIdx] = useState(0);
   
   const [activeAds, setActiveAds] = useState([]);
   const [showVideoAd, setShowVideoAd] = useState(false);
   const [showcaseVideos, setShowcaseVideos] = useState([]);
-  const [nearbyWorkers, setNearbyWorkers] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
   const [workersLoading, setWorkersLoading] = useState(true);
-  const [dbCategories, setDbCategories] = useState([]);
-  const [dbSubcategories, setDbSubcategories] = useState([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   // Request customer's live GPS location with shared cache
   useEffect(() => {
@@ -447,32 +449,44 @@ export default function Home() {
         <div className="section-inner">
           <div className="section-header">
             <div>
+              <span className="section-eyebrow">⚡ Instant Booking</span>
               <h2>Popular Services</h2>
-              <p className="section-sub">Skilled workers at your doorstep</p>
+              <p className="section-sub">Skilled workers, machine operators, and contractors at your doorstep</p>
             </div>
-            <button className="see-all-btn" onClick={() => navigate('/browse')}>See all <HiChevronRight style={{ width: 14, height: 14, verticalAlign: 'middle' }} /></button>
+            <button className="see-all-btn" onClick={() => navigate('/browse')}>
+              See all categories <HiChevronRight style={{ width: 16, height: 16, verticalAlign: 'middle' }} />
+            </button>
           </div>
-          <div className="h-scroll">
+          
+          <div className="popular-services-grid">
             {categoriesLoading ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="service-card reveal-on-scroll" style={{ padding: '10px' }}>
-                  <Skeleton type="card" style={{ height: '120px', marginBottom: '10px' }} />
-                  <Skeleton type="title" style={{ width: '60%' }} />
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="service-card reveal-on-scroll" style={{ padding: '12px' }}>
+                  <Skeleton type="card" style={{ height: '140px', marginBottom: '12px', borderRadius: '16px' }} />
+                  <Skeleton type="title" style={{ width: '70%' }} />
                 </div>
               ))
             ) : (
               dbCategories.map(c => (
-                <div key={c.id} className="service-card reveal-on-scroll" onClick={() => navigate(`/category/${c.id}`)}>
-                  <div className="sc-img-wrap" style={{ height: '120px', background: 'linear-gradient(135deg, #1e293b, #334155)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div key={c.id} className="service-card" onClick={() => navigate(`/category/${c.id}`)}>
+                  <div className="sc-img-wrap">
                     {c.image ? (
-                      <img src={c.image} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={c.image} alt={c.name} className="sc-img" />
                     ) : (
-                      <h3 style={{ color: '#fff', textAlign: 'center', padding: '10px', margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{c.name}</h3>
+                      <div className="sc-fallback-box">
+                        <h3>{c.name}</h3>
+                      </div>
                     )}
+                    <div className="sc-overlay-badge">
+                      <span>Verified Category</span>
+                    </div>
                   </div>
                   <div className="sc-body">
-                    <div className="sc-name">{c.name}</div>
-                    <div className="sc-desc">Explore subcategories</div>
+                    <h3 className="sc-name">{c.name}</h3>
+                    <p className="sc-desc">Explore verified specialists & machines</p>
+                    <div className="sc-action-row">
+                      <span className="sc-action-link">View Services →</span>
+                    </div>
                   </div>
                 </div>
               ))
@@ -482,46 +496,39 @@ export default function Home() {
       </section>
 
       {/* ── Video Showcase ── */}
-      <section className="section section-dark reveal-on-scroll">
+      <section className="section section-dark video-showcase-section reveal-on-scroll">
         <div className="section-inner">
-          <div className="section-header" style={{ marginBottom: '24px' }}>
-            <h2 className="white-h2">Mana Local in Action</h2>
-            <p className="white-sub">See how our verified professionals deliver excellence.</p>
+          <div className="video-section-header">
+            <div>
+              <span className="video-eyebrow">🎥 Field Footage</span>
+              <h2 className="white-h2">Mana Local in Action</h2>
+              <p className="white-sub">See how our verified machine operators and professionals deliver excellence on-site.</p>
+            </div>
+            <div className="video-stats-badge">
+              <span className="video-live-dot"></span> Live Operations
+            </div>
           </div>
-          <div className="h-scroll" style={{ paddingBottom: '20px' }}>
+          
+          <div className="video-showcase-grid">
             {(showcaseVideos.length > 0 ? showcaseVideos : [
-              { id: 'v1', video_url: '/videos/video1.mp4', title: 'Quality Workmanship' },
-              { id: 'v2', video_url: '/videos/video2.mp4', title: 'Verified Professionals' },
-              { id: 'v3', video_url: '/videos/video3.mp4', title: 'Prompt Local Service' }
+              { id: 'v1', video_url: '/videos/video1.mp4', title: 'Quality Workmanship', tag: 'Excavation & Earthwork' },
+              { id: 'v2', video_url: '/videos/video2.mp4', title: 'Verified Professionals', tag: 'Construction & Masonry' },
+              { id: 'v3', video_url: '/videos/video3.mp4', title: 'Prompt Local Service', tag: 'Machinery Dispatch' }
             ]).map((vid, idx) => (
-              <div key={vid.id || idx} style={{ 
-                flex: '0 0 280px', // Fixed width for side-by-side scrolling
-                borderRadius: '16px', overflow: 'hidden', background: '#0f172a', 
-                boxShadow: '0 10px 25px rgba(0,0,0,0.3)', border: '1px solid #334155',
-                position: 'relative', paddingTop: '497px' /* 280 * 16/9 = 497px */
-              }}>
-                <video 
-                  src={vid.video_url}
-                  controls
-                  preload="metadata"
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-                {vid.title && (
-                  <div style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    padding: '12px 14px',
-                    background: 'linear-gradient(to top, rgba(15,23,42,0.95), transparent)',
-                    color: '#fff',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    pointerEvents: 'none'
-                  }}>
-                    {vid.title}
-                  </div>
-                )}
+              <div key={vid.id || idx} className="video-card-premium">
+                <div className="video-player-wrap">
+                  <video 
+                    src={vid.video_url}
+                    controls
+                    preload="metadata"
+                    className="video-element"
+                  />
+                  <div className="video-gradient-overlay"></div>
+                </div>
+                <div className="video-card-footer">
+                  <span className="video-card-tag">{vid.tag || 'Verified Field Work'}</span>
+                  <h4 className="video-card-title">{vid.title}</h4>
+                </div>
               </div>
             ))}
           </div>
