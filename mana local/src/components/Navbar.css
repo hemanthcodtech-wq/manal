@@ -237,6 +237,7 @@
 .drop-item.logout:hover {
   background: #fef2f2;
   color: #dc2626;
+}
 .dropdown hr { margin: 6px 0; border: none; border-top: 1px solid #f1f5f9; }
 
 .role-tag {
