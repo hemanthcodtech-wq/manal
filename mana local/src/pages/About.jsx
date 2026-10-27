@@ -131,7 +131,7 @@ export default function About() {
               },
               {
                 q: "How do I register as a skilled worker or service provider?",
-                a: "Click on 'Login' in the navigation bar and choose 'Worker Login', then tap 'Register as Worker'. Provide your name, category, skills, location, and phone number. Once verified by our local administration team, your profile goes live immediately."
+                a: "Click on 'Login' in the navigation bar and choose 'Login', then tap 'Register as Worker'. Provide your name, category, skills, location, and phone number. Once verified by our local administration team, your profile goes live immediately."
               },
               {
                 q: "Are real estate properties on Mana Local listed by brokers or admins?",
@@ -139,7 +139,7 @@ export default function About() {
               },
               {
                 q: "What should I do if a worker doesn't arrive or demands extra payment?",
-                a: "In the rare event of an issue, you can immediately report the provider through our 24/7 support line (+91 98486 15849) or submit a ticket on our Contact page. Providers with policy violations are instantly suspended."
+                a: "In the rare event of an issue, you can immediately report the provider through our 24/7 support line (+91 94935 15849) or submit a ticket on our Contact page. Providers with policy violations are instantly suspended."
               },
               {
                 q: "In which cities and regions is Mana Local currently operational?",

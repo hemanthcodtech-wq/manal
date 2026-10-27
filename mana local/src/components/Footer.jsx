@@ -13,8 +13,8 @@ export default function Footer() {
             <img src={logo} alt="Mana Local Logo" className="footer-logo-img" />
           </Link>
           <p>Your trusted platform for booking verified local professionals. Plumbers, Electricians, and more — instantly.</p>
-          <p className="footer-contact"><strong>Phone:</strong> +91 98486 15849</p>
-          <p className="footer-contact"><strong>Email:</strong> info@ourlocal.in</p>
+          <p className="footer-contact"><strong>Phone:</strong> +91 94935 15849</p>
+          <p className="footer-contact"><strong>Email:</strong> Ourlocalmanalocal@gmail.com</p>
           <p className="footer-contact"><strong>Address:</strong> Chimakurty</p>
           <div className="footer-social">
             <a href="#" aria-label="Twitter"><FaTwitter /></a>
@@ -40,7 +40,7 @@ export default function Footer() {
 
         <div className="footer-col">
           <h4>For Professionals</h4>
-          <Link to="/login">Register as Professional</Link>
+          <Link to="/login">Login</Link>
           <Link to="/jobs">Find Local Jobs</Link>
           <Link to="/contact">Partner with Us</Link>
         </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { HiLocationMarker, HiPhone, HiMail, HiShieldCheck, HiClock, HiChatAlt2 } from 'react-icons/hi';
 import Footer from '../components/Footer';
 import contactHeroImg from '../assets/contact_hero.jpg';
@@ -7,6 +7,19 @@ import './Contact.css';
 
 export default function Contact() {
   const containerRef = useScrollReveal();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const waNumber = '919493515849';
+    const text = `*New Contact Message - Mana Local*\n\n*Name:* ${formData.name}\n*Email:* ${formData.email}\n*Message:* ${formData.message}`;
+    const encoded = encodeURIComponent(text);
+    window.open(`https://wa.me/${waNumber}?text=${encoded}`, '_blank');
+  };
 
   return (
     <div className="contact-page" ref={containerRef}>
@@ -40,7 +53,7 @@ export default function Contact() {
               <div className="info-icon-wrap"><HiPhone className="info-icon" /></div>
               <div>
                 <strong>Phone Support</strong>
-                <span>+91 98486 15849</span>
+                <span>+91 94935 15849</span>
               </div>
             </div>
             
@@ -48,25 +61,43 @@ export default function Contact() {
               <div className="info-icon-wrap"><HiMail className="info-icon" /></div>
               <div>
                 <strong>Email Us</strong>
-                <span>info@ourlocal.in</span>
+                <span>Ourlocalmanalocal@gmail.com</span>
               </div>
             </div>
           </div>
 
           <div className="contact-form-container">
             <h2>Send us a Message</h2>
-            <form className="contact-form" onSubmit={(e) => e.preventDefault()}>
+            <form className="contact-form" onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Full Name</label>
-                <input type="text" placeholder="John Doe" required />
+                <input 
+                  type="text" 
+                  placeholder="John Doe" 
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required 
+                />
               </div>
               <div className="form-group">
                 <label>Email Address</label>
-                <input type="email" placeholder="john@example.com" required />
+                <input 
+                  type="email" 
+                  placeholder="john@example.com" 
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required 
+                />
               </div>
               <div className="form-group">
                 <label>Message</label>
-                <textarea rows="4" placeholder="How can we help you?" required></textarea>
+                <textarea 
+                  rows="4" 
+                  placeholder="How can we help you?" 
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  required 
+                ></textarea>
               </div>
               <button type="submit" className="submit-btn">Send Message</button>
             </form>

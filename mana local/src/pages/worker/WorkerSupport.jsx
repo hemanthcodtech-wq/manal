@@ -36,7 +36,7 @@ ${content}`;
     const encodedMessage = encodeURIComponent(message);
     
     // Support phone number (without +)
-    const waNumber = '919848615849';
+    const waNumber = '919493515849';
     
     // Open WhatsApp URL in a new tab
     window.open(`https://wa.me/${waNumber}?text=${encodedMessage}`, '_blank');
@@ -92,8 +92,8 @@ ${content}`;
               </div>
             </div>
             <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '16px', fontWeight: '600', color: '#1e293b', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>+91 98486 15849</span>
-              <a href="tel:+919848615849" className="admin-btn-primary" style={{ padding: '8px 16px', textDecoration: 'none', fontSize: '14px', whiteSpace: 'nowrap' }}>Call Now</a>
+              <span>+91 94935 15849</span>
+              <a href="tel:+919493515849" className="admin-btn-primary" style={{ padding: '8px 16px', textDecoration: 'none', fontSize: '14px', whiteSpace: 'nowrap' }}>Call Now</a>
             </div>
           </div>
 
@@ -108,8 +108,8 @@ ${content}`;
               </div>
             </div>
             <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '16px', fontWeight: '600', color: '#1e293b', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ wordBreak: 'break-all' }}>info@ourlocal.in</span>
-              <a href="mailto:info@ourlocal.in" className="admin-btn-primary" style={{ padding: '8px 16px', background: '#ef4444', textDecoration: 'none', fontSize: '14px', whiteSpace: 'nowrap' }}>Email Us</a>
+              <span style={{ wordBreak: 'break-all' }}>Ourlocalmanalocal@gmail.com</span>
+              <a href="mailto:Ourlocalmanalocal@gmail.com" className="admin-btn-primary" style={{ padding: '8px 16px', background: '#ef4444', textDecoration: 'none', fontSize: '14px', whiteSpace: 'nowrap' }}>Email Us</a>
             </div>
           </div>
 

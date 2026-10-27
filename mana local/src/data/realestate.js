@@ -8,7 +8,7 @@ export const realestate = [
     area: '200 Sq. Yards',
     description: 'A premium HMDA approved open plot surrounded by nature. Perfect for building a weekend farmhouse or villa. Excellent connectivity to the main highway.',
     image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80',
-    contact: '+919848615849'
+    contact: '+919493515849'
   },
   {
     id: 're2',
@@ -19,7 +19,7 @@ export const realestate = [
     area: '3200 Sq. Ft',
     description: 'Fully furnished luxury villa in a premium gated community. Features a private garden, 2 car parking spaces, and state-of-the-art club house amenities.',
     image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80',
-    contact: '+919848615849'
+    contact: '+919493515849'
   },
   {
     id: 're3',
@@ -30,7 +30,7 @@ export const realestate = [
     area: '1500 Sq. Ft',
     description: 'Prime commercial office space available for rent in the heart of Hitech City. Fully air-conditioned with 100% power backup and 24/7 security.',
     image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80',
-    contact: '+919848615849'
+    contact: '+919493515849'
   },
   {
     id: 're4',
@@ -41,7 +41,7 @@ export const realestate = [
     area: '5 Acres',
     description: 'Fertile agricultural land with excellent groundwater levels. Ideal for organic farming or developing a large resort property.',
     image: 'https://images.unsplash.com/photo-1592982537447-6f23f59e99a8?w=800&q=80',
-    contact: '+919848615849'
+    contact: '+919493515849'
   },
   {
     id: 're5',
@@ -52,7 +52,7 @@ export const realestate = [
     area: '1200 Sq. Ft',
     description: 'Spacious 2BHK apartment in a newly constructed society. East-facing, Vastu compliant, with high-quality interior finishes.',
     image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80',
-    contact: '+919848615849'
+    contact: '+919493515849'
   },
   {
     id: 're6',
@@ -63,6 +63,6 @@ export const realestate = [
     area: '400 Sq. Yards',
     description: 'Highly lucrative commercial plot directly facing the National Highway. Perfect for constructing a showroom, restaurant, or warehouse.',
     image: 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=800&q=80',
-    contact: '+919848615849'
+    contact: '+919493515849'
   }
 ];

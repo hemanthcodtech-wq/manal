@@ -302,7 +302,7 @@ export default function Home() {
             <span className="qa-text">Join as Worker</span>
             <HiArrowRight className="qa-arrow" />
           </button>
-          <button className="qa-btn qa-green" onClick={() => window.open('https://wa.me/919848615849')}>
+          <button className="qa-btn qa-green" onClick={() => window.open('https://wa.me/919493515849')}>
             <div className="qa-icon-wrap"><FaWhatsapp className="qa-icon" /></div>
             <span className="qa-text">WhatsApp Connect</span>
             <HiArrowRight className="qa-arrow" />

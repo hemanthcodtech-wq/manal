@@ -87,7 +87,7 @@ export default function Navbar() {
                   </div>
                   <hr />
                   <Link to="/login" className="drop-item" onClick={() => setAuthDropOpen(false)}>
-                    <HiUser className="drop-icon" /> Worker Login
+                    <HiUser className="drop-icon" /> Login
                   </Link>
                   <Link to="/login" className="drop-item" onClick={() => setAuthDropOpen(false)}>
                     <HiCog className="drop-icon" /> Admin Login
