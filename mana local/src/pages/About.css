@@ -134,10 +134,24 @@
 }
 
 .vm-box p {
-  font-size: 18px;
-  color: #444;
-  line-height: 1.6;
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.vm-box .vm-te {
+  font-size: 17px;
+  color: #1e293b;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.vm-box .vm-en {
+  font-size: 15px;
+  color: #64748b;
   font-style: italic;
+  padding-top: 12px;
+  border-top: 1px dashed #e2e8f0;
 }
 
 .about-core-values {
@@ -173,9 +187,20 @@
 }
 
 .cv-card p {
-  font-size: 14px;
-  color: #666;
   margin: 0;
+}
+
+.cv-card .cv-te {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 4px;
+}
+
+.cv-card .cv-en {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.4;
 }
 
 @media (max-width: 768px) {

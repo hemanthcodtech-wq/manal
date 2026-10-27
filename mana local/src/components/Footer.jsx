@@ -54,7 +54,7 @@ export default function Footer() {
       </div>
 
       <div className="footer-bottom">
-        <p>* As on December 31, 2026</p>
+        <p>* As on October 31, 2026</p>
         <p>© Copyright 2026 Mana Local Technologies India Limited. All rights reserved.</p>
       </div>
     </footer>

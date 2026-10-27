@@ -31,12 +31,14 @@ export default function About() {
       <div className="about-content">
         <section className="about-vision-mission reveal-on-scroll">
           <div className="vm-box">
-            <h2>Vision</h2>
-            <p>“పతి పాంతంలోని పజలకు అవసరమైన సేవలు, వాపారాలు, ఉ గాలు, ఆసులు మరియు షాంగ్ ను ఒకే చోట సులభంగా అందుబాటులోకి తీసుకురావడం.”</p>
+            <h2>Vision 🌟</h2>
+            <p className="vm-te">“ప్రతి ప్రాంతంలోని ప్రజలకు అవసరమైన సేవలు, వ్యాపారాలు, ఉద్యోగాలు, ఆస్తులు మరియు షాపింగ్ ను ఒకే చోట సులభంగా అందుబాటులోకి తీసుకురావడం.”</p>
+            <p className="vm-en">“To bring essential services, businesses, jobs, real estate properties, and local shopping easily accessible in one place for people in every region.”</p>
           </div>
           <div className="vm-box">
             <h2>Mission 🎯</h2>
-            <p>“మన పాంతంలోని సానిక సేవలు, వరరు, వాపారాలు, ఉ గాలు, పాపరీలు మరియు షాంగ్ ను డిజిటల్ గా అనుసంధానించి, పజలకు సమయం మరియు ఖరు ఆదా చేసే నమకమైన Local Marketplace ను నిరించడం.”</p>
+            <p className="vm-te">“మన ప్రాంతంలోని స్థానిక సేవలు, వర్కర్లు, వ్యాపారాలు, ఉద్యోగాలు, ప్రాపర్టీలు మరియు షాపింగ్ ను డిజిటల్ గా అనుసంధానించి, ప్రజలకు సమయం మరియు ఖర్చు ఆదా చేసే నమ్మకమైన Local Marketplace ను నిర్మించడం.”</p>
+            <p className="vm-en">“To digitally connect local services, workers, businesses, jobs, real estate properties, and shopping—building a trusted Local Marketplace that saves time and money for the community.”</p>
           </div>
         </section>
 
@@ -45,31 +47,38 @@ export default function About() {
           <div className="cv-grid">
             <div className="cv-card">
               <h4>1. Local First</h4>
-              <p>మన పాంతానికి, మన పజలకు పాధానత</p>
+              <p className="cv-te">మన ప్రాంతానికి, మన ప్రజలకు ప్రాధాన్యత</p>
+              <p className="cv-en">Prioritizing our region and our people</p>
             </div>
             <div className="cv-card">
               <h4>2. Trust & Transparency</h4>
-              <p>నమకం మరియు పారదరకత</p>
+              <p className="cv-te">నమ్మకం మరియు పారదర్శకత</p>
+              <p className="cv-en">Uncompromised honesty and transparency</p>
             </div>
             <div className="cv-card">
               <h4>3. Easy & Accessible</h4>
-              <p>అందరికీ సులభంగా ఉపయోగపడే సేవలు</p>
+              <p className="cv-te">అందరికీ సులభంగా ఉపయోగపడే సేవలు</p>
+              <p className="cv-en">Seamless and accessible services for everyone</p>
             </div>
             <div className="cv-card">
               <h4>4. Community Growth</h4>
-              <p>సానిక వాపారాలు, వరరు, యువత అభివృ</p>
+              <p className="cv-te">స్థానిక వ్యాపారాలు, వర్కర్లు, యువత అభివృద్ధి</p>
+              <p className="cv-en">Empowering local businesses, workers, and youth</p>
             </div>
             <div className="cv-card">
               <h4>5. Quality & Reliability</h4>
-              <p>నాణమైన, నమదగిన సేవలు</p>
+              <p className="cv-te">నాణ్యమైన, నమ్మదగిన సేవలు</p>
+              <p className="cv-en">High quality and dependable assistance</p>
             </div>
             <div className="cv-card">
               <h4>6. Innovation</h4>
-              <p>ఆధునిక టెకాలజీతో సానిక అవసరాలకు పరిషారాలు</p>
+              <p className="cv-te">ఆధునిక టెక్నాలజీతో స్థానిక అవసరాలకు పరిష్కారాలు</p>
+              <p className="cv-en">Modern technology tailored for local everyday needs</p>
             </div>
             <div className="cv-card cv-full">
               <h4>7. One Local Platform</h4>
-              <p>“మన పాంతం… మన సేవలు… మన లోకల”</p>
+              <p className="cv-te">“మన ప్రాంతం… మన సేవలు… మన లోకల్”</p>
+              <p className="cv-en">“Our Region… Our Services… Mana Local”</p>
             </div>
           </div>
         </section>
