@@ -72,6 +72,7 @@ export default function Workers() {
               rate: `${hourlyPrice}/hr`,
               phone: w.phone || 'Not provided',
               whatsapp: w.phone || '',
+              description: w.description || '',
               latitude: w.latitude || null,
               longitude: w.longitude || null
             };
@@ -219,6 +220,23 @@ export default function Workers() {
                       <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>{worker.experience} exp</span>
                     </div>
                   </div>
+
+                  {worker.description && (
+                    <p 
+                      title={worker.description}
+                      style={{
+                        margin: '10px 0 0',
+                        fontSize: '12.5px',
+                        color: '#64748b',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        lineHeight: 1.4
+                      }}
+                    >
+                      {worker.description}
+                    </p>
+                  )}
 
                   <div className="wc-actions-wrap">
                     <div className="wc-contact-grid">

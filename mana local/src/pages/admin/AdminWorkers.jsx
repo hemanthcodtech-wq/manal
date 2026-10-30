@@ -1,15 +1,30 @@
 import { useState, useEffect } from 'react';
-import { HiStar, HiPhone, HiPencilAlt, HiCheck, HiX, HiCurrencyRupee, HiLocationMarker, HiUser, HiMail, HiBadgeCheck } from 'react-icons/hi';
+import { useNavigate } from 'react-router-dom';
+import { 
+  HiStar, HiPhone, HiPencilAlt, HiCheck, HiX, HiCurrencyRupee, 
+  HiLocationMarker, HiUser, HiMail, HiBadgeCheck, HiUserAdd,
+  HiDownload, HiDocumentText, HiCalendar, HiSearch 
+} from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import Skeleton from '../../components/Skeleton';
+import { exportToExcelFile, exportToPdfPrint } from '../../utils/exportUtils';
 import './Admin.css';
 
 export default function AdminWorkers() {
+  const navigate = useNavigate();
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedWorker, setSelectedWorker] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Date and Search filters
+  const [selectedMonth, setSelectedMonth] = useState('all');
+  const [selectedYear, setSelectedYear] = useState('all');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const currentYear = new Date().getFullYear();
   const [editForm, setEditForm] = useState({
     name: '',
     phone: '',
@@ -109,6 +124,73 @@ export default function AdminWorkers() {
     }
   };
 
+  // Filter workers based on date, month, year and search
+  const filteredWorkers = workers.filter(w => {
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchName = (w.name || '').toLowerCase().includes(q);
+      const matchPhone = (w.phone || '').toLowerCase().includes(q);
+      const matchEmail = (w.email || '').toLowerCase().includes(q);
+      const matchCat = (w.category_name || '').toLowerCase().includes(q);
+      const matchSub = (w.subcategory_name || '').toLowerCase().includes(q);
+      if (!matchName && !matchPhone && !matchEmail && !matchCat && !matchSub) return false;
+    }
+
+    if (!w.created_at) return true;
+    const d = new Date(w.created_at);
+    const itemYear = d.getFullYear();
+    const itemMonth = d.getMonth() + 1;
+    const itemDate = d.toISOString().split('T')[0];
+
+    if (selectedYear !== 'all' && itemYear !== parseInt(selectedYear)) return false;
+    if (selectedMonth !== 'all' && itemMonth !== parseInt(selectedMonth)) return false;
+    if (selectedDate && itemDate !== selectedDate) return false;
+
+    return true;
+  });
+
+  const exportHeaders = [
+    { label: 'Worker Name', key: (w) => w.name || 'Unnamed' },
+    { label: 'Phone', key: (w) => w.phone || 'N/A' },
+    { label: 'Email', key: 'email' },
+    { label: 'Category', key: (w) => w.category_name || 'N/A' },
+    { label: 'Subcategory', key: (w) => w.subcategory_name || 'N/A' },
+    { label: 'Aadhar No', key: (w) => w.aadhar_no || 'N/A' },
+    { label: 'Location', key: (w) => w.location || 'N/A' },
+    { label: 'Experience', key: (w) => w.experience || 'N/A' },
+    { label: 'Plan', key: (w) => w.plan_name || 'Free' },
+    { label: 'Joined Date', key: (w) => w.created_at ? new Date(w.created_at).toLocaleDateString() : 'N/A' },
+    { label: 'Status', key: (w) => w.status || 'Active' }
+  ];
+
+  const handleDownloadExcel = () => {
+    if (filteredWorkers.length === 0) {
+      toast.error('No workers match the selected filter to export.');
+      return;
+    }
+    const success = exportToExcelFile({
+      filename: `ManaLocal_Workers_${selectedYear}_${selectedMonth}_${selectedDate || 'all'}`,
+      headers: exportHeaders,
+      data: filteredWorkers
+    });
+    if (success) toast.success(`Exported ${filteredWorkers.length} workers to Excel!`);
+  };
+
+  const handleDownloadPdf = () => {
+    if (filteredWorkers.length === 0) {
+      toast.error('No workers match the selected filter to export.');
+      return;
+    }
+    const subtitle = `Filter: ${selectedMonth !== 'all' ? `Month: ${selectedMonth}, ` : ''}${selectedYear !== 'all' ? `Year: ${selectedYear}, ` : ''}${selectedDate ? `Date: ${selectedDate}, ` : ''}Total Workers: ${filteredWorkers.length}`;
+    const success = exportToPdfPrint({
+      title: 'Worker Management Directory',
+      subtitle,
+      headers: exportHeaders,
+      data: filteredWorkers
+    });
+    if (success) toast.success('Opened PDF printable document!');
+  };
+
   if (loading) {
     return (
       <div className="admin-page">
@@ -141,15 +223,124 @@ export default function AdminWorkers() {
 
   return (
     <div className="admin-page">
-      <div className="admin-header">
-        <div><h1>Worker Management</h1><p>Manage professionals, rates, and visibility</p></div>
+      <div className="admin-header" style={{ flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1>Worker Management</h1>
+          <p>{filteredWorkers.length} professionals shown ({workers.length} total)</p>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={handleDownloadExcel}
+            className="admin-btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#10b981', padding: '9px 16px', fontSize: '13px' }}
+          >
+            <HiDownload style={{ fontSize: '16px' }} />
+            <span>Download Excel</span>
+          </button>
+
+          <button
+            onClick={handleDownloadPdf}
+            className="admin-btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#dc2626', padding: '9px 16px', fontSize: '13px' }}
+          >
+            <HiDocumentText style={{ fontSize: '16px' }} />
+            <span>Download PDF</span>
+          </button>
+
+          <button
+            className="admin-btn-primary"
+            onClick={() => navigate('/admin/create-worker')}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 16px', fontSize: '13px' }}
+          >
+            <HiUserAdd style={{ fontSize: '18px' }} />
+            <span>Create Worker</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Date & Month Filter Bar */}
+      <div className="admin-card" style={{ marginBottom: '24px', padding: '16px 20px', display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <HiCalendar style={{ color: '#64748b', fontSize: '18px' }} />
+          <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>Filter By:</span>
+        </div>
+
+        {/* Specific Date Picker */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '12px', color: '#64748b' }}>Date:</span>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            style={{ padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
+          />
+        </div>
+
+        {/* Month Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '12px', color: '#64748b' }}>Month:</span>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            style={{ padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
+          >
+            <option value="all">All Months</option>
+            {[...Array(12)].map((_, i) => (
+              <option key={i + 1} value={i + 1}>
+                {new Date(0, i).toLocaleString('default', { month: 'long' })}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Year Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '12px', color: '#64748b' }}>Year:</span>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            style={{ padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
+          >
+            <option value="all">All Years</option>
+            {[currentYear - 2, currentYear - 1, currentYear, currentYear + 1].map(y => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Search by Name/Phone/Email/Category */}
+        <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '6px 10px', background: '#fff', marginLeft: 'auto', minWidth: '220px' }}>
+          <HiSearch style={{ color: '#94a3b8', marginRight: '6px' }} />
+          <input
+            type="text"
+            placeholder="Search name, phone, trade..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{ border: 'none', outline: 'none', fontSize: '13px', width: '100%' }}
+          />
+        </div>
+
+        {(selectedDate || selectedMonth !== 'all' || selectedYear !== 'all' || searchQuery) && (
+          <button
+            onClick={() => {
+              setSelectedDate('');
+              setSelectedMonth('all');
+              setSelectedYear('all');
+              setSearchQuery('');
+            }}
+            style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '12px', color: '#475569', cursor: 'pointer', fontWeight: 600 }}
+          >
+            Clear Filters
+          </button>
+        )}
       </div>
 
       <div className="workers-grid">
-        {workers.length === 0 ? (
-           <p className="empty-msg">No workers registered.</p>
+        {filteredWorkers.length === 0 ? (
+           <p className="empty-msg" style={{ gridColumn: '1 / -1' }}>No workers match the selected filters.</p>
         ) : (
-          workers.map(w => {
+          filteredWorkers.map(w => {
             const displayName = w.name || 'Unnamed Worker';
             const displayEmail = w.email || 'No Email';
             const displayPhone = w.phone || 'No phone number provided';

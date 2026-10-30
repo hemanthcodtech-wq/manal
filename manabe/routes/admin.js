@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const bcrypt = require('bcrypt');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
 
@@ -153,6 +154,64 @@ module.exports = (pool, redisClient) => {
     } catch (error) {
       console.error('Error fetching workers:', error);
       res.status(500).json({ error: 'Failed to fetch workers' });
+    }
+  });
+
+  // Create worker by Admin directly (no email verification, no razorpay)
+  router.post('/workers', async (req, res) => {
+    try {
+      const {
+        name, email, phone, password,
+        category_id, subcategory_id, plan_id,
+        aadhar_no, experience, address, avatar,
+        latitude, longitude, is_location_fixed
+      } = req.body;
+
+      if (!name || !email || !password) {
+        return res.status(400).json({ error: 'Name, email, and password are required' });
+      }
+
+      const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+      if (userCheck.rows.length > 0) {
+        return res.status(400).json({ error: 'Email already in use' });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const is_verified = true; // Admin creates directly, verified
+
+      const insertQuery = `
+        INSERT INTO users (
+          name, email, phone, password, role, is_verified, status,
+          category_id, subcategory_id, plan_id, payment_id, aadhar_no, experience, location, avatar,
+          latitude, longitude, is_location_fixed, rating, jobs_done, available
+        ) VALUES ($1, $2, $3, $4, 'worker', $5, 'active', $6, $7, $8, 'ADMIN_MANUAL', $9, $10, $11, $12, $13, $14, $15, 4.5, 0, true) RETURNING *
+      `;
+
+      const result = await pool.query(insertQuery, [
+        name, email, phone || null, hashedPassword, is_verified,
+        category_id || null, subcategory_id || null, plan_id || null,
+        aadhar_no || null, experience || null, address || null, avatar || null,
+        latitude || null, longitude || null, is_location_fixed ? true : false
+      ]);
+
+      // Invalidate cache for workers
+      if (redisClient && redisClient.isReady) {
+        try {
+          const keys = await redisClient.keys('admin_workers:*');
+          const pubKeys = await redisClient.keys('public_workers_*');
+          const toDelete = [...keys, ...pubKeys];
+          if (toDelete.length > 0) {
+            await redisClient.del(toDelete);
+          }
+        } catch (e) {
+          console.error('Error clearing redis cache for workers:', e);
+        }
+      }
+
+      res.status(201).json({ success: true, message: 'Worker created successfully', worker: result.rows[0] });
+    } catch (error) {
+      console.error('Error creating worker by admin:', error);
+      res.status(500).json({ error: error.message || 'Server error creating worker' });
     }
   });
 
@@ -408,25 +467,23 @@ module.exports = (pool, redisClient) => {
   });
 
   // Get monthly reports
-  router.get('/reports', cache('admin_reports'), async (req, res) => {
+  router.get('/reports', async (req, res) => {
     try {
-      const { month, year } = req.query;
-      const currentYear = year || new Date().getFullYear();
-      const currentMonth = month || (new Date().getMonth() + 1);
+      const { month, year, date, role, category_id } = req.query;
+      const currentYear = year ? parseInt(year) : new Date().getFullYear();
+      const currentMonth = month ? parseInt(month) : (new Date().getMonth() + 1);
 
-      // We need to count users, workers, and subscription revenue for this specific month/year.
-      // Workers joined in month
+      // 1. Metric counts for specified month/year
       const workersRes = await pool.query(
         `SELECT COUNT(*) as count FROM users WHERE role = 'worker' AND EXTRACT(MONTH FROM created_at) = $1 AND EXTRACT(YEAR FROM created_at) = $2`,
         [currentMonth, currentYear]
       );
-      // Customers joined in month
+      
       const usersRes = await pool.query(
         `SELECT COUNT(*) as count FROM users WHERE role = 'customer' AND EXTRACT(MONTH FROM created_at) = $1 AND EXTRACT(YEAR FROM created_at) = $2`,
         [currentMonth, currentYear]
       );
       
-      // Subscriptions purchased in month by new workers
       const subsRes = await pool.query(
         `SELECT s.amount FROM users u 
          JOIN subscriptions s ON u.plan_id = s.id 
@@ -439,6 +496,50 @@ module.exports = (pool, redisClient) => {
         revenue += parseFloat(row.amount || 0);
       });
 
+      // 2. Daily breakdown for the month
+      const dailyBreakdownRes = await pool.query(`
+        SELECT 
+          TO_CHAR(created_at, 'YYYY-MM-DD') as join_date,
+          COUNT(*) FILTER (WHERE role = 'worker') as workers_count,
+          COUNT(*) FILTER (WHERE role = 'customer') as customers_count,
+          COUNT(*) as total_count
+        FROM users
+        WHERE EXTRACT(MONTH FROM created_at) = $1 AND EXTRACT(YEAR FROM created_at) = $2
+        GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
+        ORDER BY join_date DESC
+      `, [currentMonth, currentYear]);
+
+      // 3. Detailed list of users/workers for this month (with optional filters: date, role, category_id)
+      let listQuery = `
+        SELECT 
+          u.id, u.name, u.email, u.phone, u.role, u.status, u.is_verified, 
+          u.created_at, u.location, u.category_id, u.subcategory_id,
+          c.name as category_name, sc.name as subcategory_name,
+          s.plan as plan_name, s.amount as plan_amount
+        FROM users u
+        LEFT JOIN categories c ON u.category_id = c.id
+        LEFT JOIN subcategories sc ON u.subcategory_id = sc.id
+        LEFT JOIN subscriptions s ON u.plan_id = s.id
+        WHERE EXTRACT(MONTH FROM u.created_at) = $1 AND EXTRACT(YEAR FROM u.created_at) = $2
+      `;
+      const listParams = [currentMonth, currentYear];
+
+      if (date) {
+        listParams.push(date);
+        listQuery += ` AND TO_CHAR(u.created_at, 'YYYY-MM-DD') = $${listParams.length}`;
+      }
+      if (role && role !== 'all') {
+        listParams.push(role);
+        listQuery += ` AND u.role = $${listParams.length}`;
+      }
+      if (category_id && category_id !== 'all') {
+        listParams.push(parseInt(category_id));
+        listQuery += ` AND u.category_id = $${listParams.length}`;
+      }
+
+      listQuery += ` ORDER BY u.created_at DESC`;
+      const listRes = await pool.query(listQuery, listParams);
+
       res.json({
         success: true,
         report: {
@@ -448,7 +549,9 @@ module.exports = (pool, redisClient) => {
           revenue: revenue,
           month: currentMonth,
           year: currentYear
-        }
+        },
+        dailyBreakdown: dailyBreakdownRes.rows,
+        records: listRes.rows
       });
     } catch (error) {
       console.error('Error fetching reports:', error);

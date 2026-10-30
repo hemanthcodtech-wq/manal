@@ -40,6 +40,7 @@ import AdminSubscriptions from './pages/admin/AdminSubscriptions';
 import AdminSubscriptionReports from './pages/admin/AdminSubscriptionReports';
 import AdminPromotionalAds from './pages/admin/AdminPromotionalAds';
 import AdminVideos from './pages/admin/AdminVideos';
+import AdminCreateWorker from './pages/admin/AdminCreateWorker';
 
 import WorkerDashboard from './pages/worker/WorkerDashboard';
 import WorkerLayout from './pages/worker/WorkerLayout';
@@ -107,6 +108,7 @@ function Layout() {
             <Route path="videos"                  element={<AdminVideos />} />
             <Route path="customers"               element={<AdminCustomers />} />
             <Route path="workers"                 element={<AdminWorkers />} />
+            <Route path="create-worker"           element={<AdminCreateWorker />} />
             <Route path="jobs"                    element={<AdminJobs />} />
             <Route path="realestate"              element={<AdminRealEstate />} />
             <Route path="categories"              element={<AdminCategories />} />

@@ -356,17 +356,21 @@ export default function Home() {
                     onClick={() => navigate(`/professional/${w.id}`)}
                     style={{
                       flex: '0 0 280px',
+                      width: '280px',
+                      maxWidth: '280px',
+                      boxSizing: 'border-box',
                       background: '#ffffff',
                       border: '1px solid #e2e8f0',
                       borderRadius: '20px',
-                      padding: '20px',
+                      padding: '16px 18px',
                       cursor: 'pointer',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                       boxShadow: '0 4px 18px rgba(0,0,0,0.04)',
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
-                      position: 'relative'
+                      position: 'relative',
+                      overflow: 'hidden'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-6px)';
@@ -379,40 +383,59 @@ export default function Home() {
                       e.currentTarget.style.boxShadow = '0 4px 18px rgba(0,0,0,0.04)';
                     }}
                   >
-                    <div>
+                    <div style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}>
                       {/* Top Row: Avatar & Status */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
                         <div style={{ position: 'relative' }}>
                           <img 
                             src={avatarImg} 
                             alt={w.name} 
-                            style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #e2e8f0' }} 
+                            style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #e2e8f0' }} 
                           />
-                          <HiBadgeCheck style={{ position: 'absolute', bottom: -2, right: -2, color: '#0284c7', background: '#fff', borderRadius: '50%', fontSize: '18px' }} />
+                          <HiBadgeCheck style={{ position: 'absolute', bottom: -2, right: -2, color: '#0284c7', background: '#fff', borderRadius: '50%', fontSize: '16px' }} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <h4 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <h4 style={{ margin: '0 0 2px', fontSize: '15px', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {w.name}
                           </h4>
-                          <span style={{ display: 'inline-block', background: '#f1f5f9', color: '#0369a1', fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+                          <span style={{ display: 'inline-block', background: '#f1f5f9', color: '#0369a1', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
                             {subName}
                           </span>
                         </div>
                       </div>
 
                       {/* Distance and Rating Pills */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#eff6ff', color: '#0284c7', fontSize: '12px', fontWeight: 700, padding: '4px 10px', borderRadius: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#eff6ff', color: '#0284c7', fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '14px' }}>
                           <HiLocationMarker /> {w.displayDistance}
                         </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#fef3c7', color: '#b45309', fontSize: '12px', fontWeight: 700, padding: '4px 8px', borderRadius: '14px' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#fef3c7', color: '#b45309', fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '14px' }}>
                           <HiStar style={{ color: '#f59e0b' }} /> {w.rating || '5.0'}
                         </span>
                       </div>
+
+                      {/* 1-line Description with Ellipsis */}
+                      <p 
+                        title={w.description || `${w.name} is an experienced specialist in ${subName}.`}
+                        style={{
+                          margin: '0 0 8px',
+                          fontSize: '12px',
+                          color: '#64748b',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: 'block',
+                          width: '100%',
+                          maxWidth: '100%',
+                          lineHeight: 1.3
+                        }}
+                      >
+                        {w.description || `${w.name} is an experienced specialist in ${subName}.`}
+                      </p>
                     </div>
 
                     {/* Bottom: Pricing & Action */}
-                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div>
                         <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Starting</div>
                         <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>₹{hourlyRate}/hr</div>

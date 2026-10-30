@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useState, useRef, useEffect } from 'react';
-import { HiHome, HiClipboardList, HiUsers, HiDotsHorizontal, HiLogout, HiChevronDown, HiDocumentText, HiCurrencyRupee, HiChartBar, HiOfficeBuilding, HiViewGridAdd, HiVideoCamera } from 'react-icons/hi';
+import { HiHome, HiClipboardList, HiUsers, HiDotsHorizontal, HiLogout, HiChevronDown, HiDocumentText, HiCurrencyRupee, HiChartBar, HiOfficeBuilding, HiViewGridAdd, HiVideoCamera, HiUserAdd } from 'react-icons/hi';
 import { MdEngineering, MdConstruction } from 'react-icons/md';
 import logo from '../../assets/logo.png';
 import './Admin.css';
@@ -10,7 +10,8 @@ const NAV = [
   { to: '/admin',                       icon: HiHome,           label: 'Dashboard', end: true },
   { to: '/admin/videos',                icon: HiVideoCamera,    label: 'Videos Uploading'    },
   { to: '/admin/customers',             icon: HiUsers,          label: 'Customers'           },
-  { to: '/admin/workers',               icon: MdEngineering,    label: 'Workers'             },
+  { to: '/admin/workers',               icon: MdEngineering,    label: 'Workers', end: true  },
+  { to: '/admin/create-worker',         icon: HiUserAdd,        label: 'Create Worker'       },
   { to: '/admin/jobs',                  icon: HiClipboardList,  label: 'Jobs Posting'        },
   { to: '/admin/realestate',            icon: HiOfficeBuilding, label: 'Real Estate'         },
   { to: '/admin/categories',            icon: HiViewGridAdd,    label: 'Categories'          },
@@ -69,9 +70,11 @@ export default function AdminLayout() {
 
           <div className="ath-user" ref={dropRef}>
             <button className="ath-user-btn" onClick={() => setDropOpen(o => !o)}>
-              <div className="ath-avatar">{user?.name?.charAt(0)}</div>
+              <div className="ath-avatar">
+                {user?.name ? user.name.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : 'A')}
+              </div>
               <div className="ath-info">
-                <strong>{user?.name?.split(' ')[0]}</strong>
+                <strong>{user?.name || user?.email?.split('@')[0] || 'Admin'}</strong>
                 <span>Administrator</span>
               </div>
               <HiChevronDown className={`ath-chevron ${dropOpen ? 'open' : ''}`} />
@@ -79,10 +82,12 @@ export default function AdminLayout() {
             {dropOpen && (
               <div className="ath-dropdown">
                 <div className="ath-drop-header">
-                  <div className="ath-drop-avatar">{user?.name?.charAt(0)}</div>
+                  <div className="ath-drop-avatar">
+                    {user?.name ? user.name.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : 'A')}
+                  </div>
                   <div>
-                    <strong>{user?.name}</strong>
-                    <span>{user?.email}</span>
+                    <strong>{user?.name || user?.email?.split('@')[0] || 'Admin'}</strong>
+                    <span>{user?.email || 'admin@ourlocal.in'}</span>
                   </div>
                 </div>
                 <hr className="ath-drop-divider" />

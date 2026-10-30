@@ -11,6 +11,7 @@ module.exports = (pool, redisClient) => {
         SELECT u.id, u.name, u.email, u.phone, u.role, u.status, u.available, u.rating, u.avatar, u.created_at, 
                u.aadhar_no, u.experience, u.location, u.category_id, u.subcategory_id, u.plan_id, u.payment_id, u.jobs_done,
                u.rate_per_hour, u.rate_per_day, u.rate_per_week, u.description, u.available_from, u.available_to, u.available_days,
+               u.latitude, u.longitude,
                u.cover_image, u.profile_views,
                c.name as category_name, sc.name as subcategory_name, sc.allow_showcase_images
         FROM users u
