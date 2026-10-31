@@ -66,7 +66,8 @@ export default function Navbar() {
             <Link to="/realestate" className="desktop-link">Real Estate</Link>
             <Link to="/about" className="desktop-link">About Us</Link>
             <Link to="/contact" className="desktop-link">Contact Us</Link>
-            {user && <Link to="/orders" className="desktop-link">Orders</Link>}
+            {user && <Link t
+            o="/orders" className="desktop-link">Orders</Link>}
           </div>
 
           <button className="nav-search-btn" onClick={() => navigate('/browse')}>

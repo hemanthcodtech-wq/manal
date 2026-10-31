@@ -9,11 +9,11 @@ import './Browse.css';
 const FALLBACK = 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80';
 
 export default function Browse() {
-  const containerRef = useScrollReveal();
   const [params] = useSearchParams();
   const [search, setSearch] = useState('');
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const containerRef = useScrollReveal([loading, categories.length, search]);
   const navigate = useNavigate();
 
   useEffect(() => {

@@ -347,7 +347,8 @@ export default function Home() {
             ) : nearbyWorkers.length > 0 ? (
               nearbyWorkers.map((w) => {
                 const subName = dbSubcategories.find(s => s.id === w.subcategory_id)?.name || w.category_name || 'Home Specialist';
-                const hourlyRate = w.rate_per_hour || 500;
+                const hasCustomRate = w.rate_per_hour && Number(w.rate_per_hour) > 0;
+                const hourlyRate = hasCustomRate ? Number(w.rate_per_hour) : null;
                 const avatarImg = w.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(w.name || 'W')}&background=random`;
 
                 return (
@@ -435,11 +436,17 @@ export default function Home() {
                     </div>
 
                     {/* Bottom: Pricing & Action */}
-                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div>
-                        <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Starting</div>
-                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>₹{hourlyRate}/hr</div>
-                      </div>
+                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                      {hasCustomRate ? (
+                        <div>
+                          <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>Starting</div>
+                          <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>₹{hourlyRate}/hr</div>
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+                          On Request
+                        </div>
+                      )}
                       <button 
                         style={{
                           background: 'linear-gradient(135deg, #0284c7, #0369a1)',
@@ -449,7 +456,8 @@ export default function Home() {
                           borderRadius: '10px',
                           fontSize: '12px',
                           fontWeight: 700,
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          marginLeft: 'auto'
                         }}
                       >
                         View Profile

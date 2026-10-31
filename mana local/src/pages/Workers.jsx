@@ -53,11 +53,9 @@ export default function Workers() {
         const res = await fetch(url);
         const data = await res.json();
         if (data.success) {
-          const defaultSubcategoryRate = (service && service.rate) || 450;
           const formatted = data.workers.map(w => {
-            const hourlyPrice = (w.rate_per_hour && Number(w.rate_per_hour) > 0)
-              ? Number(w.rate_per_hour)
-              : defaultSubcategoryRate;
+            const hasCustomRate = w.rate_per_hour && Number(w.rate_per_hour) > 0;
+            const hourlyPrice = hasCustomRate ? Number(w.rate_per_hour) : null;
 
             return {
               id: w.id,
@@ -69,7 +67,8 @@ export default function Workers() {
               experience: w.experience || '5+ years',
               distance: w.distance || '2.0',
               ratePerHour: hourlyPrice,
-              rate: `${hourlyPrice}/hr`,
+              rate: hourlyPrice ? `₹${hourlyPrice}/hr` : null,
+              hasCustomRate,
               phone: w.phone || 'Not provided',
               whatsapp: w.phone || '',
               description: w.description || '',
@@ -210,13 +209,21 @@ export default function Workers() {
                   
                   <div className="wc-price-card">
                     <div>
-                      <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', color: '#64748b', fontWeight: 700 }}>Starting Rate</div>
+                      <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', color: '#64748b', fontWeight: 700 }}>
+                        {worker.hasCustomRate ? 'Starting Rate' : 'Pricing'}
+                      </div>
                       <div style={{ fontSize: '12.5px', color: '#0369a1', fontWeight: 700, marginTop: '3px' }}>📍 {worker.location}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div className="wc-price-rate">
-                        ₹{worker.rate}
-                      </div>
+                      {worker.hasCustomRate ? (
+                        <div className="wc-price-rate">
+                          {worker.rate}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>
+                          On Request
+                        </div>
+                      )}
                       <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>{worker.experience} exp</span>
                     </div>
                   </div>
